@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>帮助</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+    <script type="text/javascript" src="../internal.js"></script>
+    <link rel="stylesheet" type="text/css" href="button.css?1">
+	<link rel="stylesheet" href="/Public/wigets/bootstrap/css/bootstrap.min.css">
+</head>
+<body>
+<div>
+	<div class="form-group">
+		<label>样式</label>
+		<div class="radio">
+			<label><input type="radio" name="style" checked value="btn-default" />（默认样式）Default</label>
+			<label><input type="radio" name="style" value="btn-primary" />（首选项）Primary</label>
+			<label><input type="radio" name="style" value="btn-success" />（成功）Success</label>
+			<label><input type="radio" name="style" value="btn-info" />（一般信息）Info</label>
+			<label><input type="radio" name="style" value="btn-warning" />（警告）Warning</label>
+			<label><input type="radio" name="style" value="btn-danger" />（危险）Danger</label>
+		</div>
+	</div>
+	<div class="form-group">
+		<label>大小</label>
+		<div class="radio">
+			<label><input type="radio" name="size" value="btn-lg" />（大按钮）Large button</label>
+			<label><input type="radio" name="size" checked value="" />（默认尺寸）Default button</label>
+			<label><input type="radio" name="size" value="btn-sm" />（小按钮）Small button</label>
+			<label><input type="radio" name="size" value="btn-xs" />（超小尺寸）Extra small button</label>
+		</div>
+	</div>
+	<div class="checkbox">
+		<label>
+			<input type="checkbox" name="block" value="1" />最大宽度
+		</label>
+	</div>
+	<div class="form-group">
+		<label>链接</label>
+		<input type="text" name="link" class="form-control" value="" />
+	</div>
+	<div class="form-group">
+		<label>文字</label>
+		<input type="text" name="text" class="form-control" value="按钮" />
+	</div>
+	<div class="form-group" id="btn"><a href="" class="btn btn-default">按钮</a></div>
+	<div class="form-group"><button id="ok" href="javascript:void(0)" class="btn btn-primary btn-block">确定</button></div>
+</div>
+<script src="/Public/wigets/jquery/jquery-1.11.3.min.js"></script>
+<script type="text/javascript" src="button.js?8"></script>
+</body>
+</html>

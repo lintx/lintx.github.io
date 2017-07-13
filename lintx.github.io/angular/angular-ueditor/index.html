@@ -1,0 +1,28 @@
+<!doctype html>
+<html class="no-js">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+        <title>Web Application</title>
+        <meta name="description" content="Responsive Admin Web App with Bootstrap and AngularJS">
+        <meta name="keywords" content="angularjs admin, admin templates, admin themes, bootstrap admin">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-touch-fullscreen" content="yes">
+    </head>
+    <body data-ng-app="app" ng-controller="appCtr"
+          >
+        <div class="ueditor" ng-model="data.content"></div>
+		<div>
+			<h3>说明：</h3>
+			<p>1.dome中的dictive-ngmodel来自于https://github.com/zqjimlove/angular-ueditor</p>
+			<p>2.对dictive-ngmodel做了2点修改：增加$compile、增加$rootScope.$$phase检测</p>
+			<p>3.工具栏最后一个按钮为自定义按钮，在这个按钮中可以调用angular方法（比如从service中获取数据填充到ueditor之类）</p>
+		</div>
+        <script src="../modules/ueditor1_4_3-utf8-php/ueditor.config.min.js"></script>
+        <script src="../modules/ueditor1_4_3-utf8-php/ueditor.all.min.js"></script>
+        <script src="../node_modules/angular/angular.min.js"></script>
+        <script src="angular-ueditor.js"></script>
+        <script src="index.js"></script>
+    </body>
+</html>
