@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+
+    <title>Minecraft主世界要塞坐标计算器</title>
+    <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .table .td-middle{
+            vertical-align: middle !important;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h3 class="news-title">Minecraft主世界要塞坐标计算器</h3>
+    <hr>
+    <div class="panel panel-default">
+        <div class="panel-heading">计算器</div>
+        <div class="panel-body">
+            <div ng-app="calc" ng-controller="calcCtrl">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <label for="pointx" class="col-sm-2 control-label">人物X坐标</label>
+                        <div class="col-sm-10">
+                            <input type="number" class="form-control" id="pointx" ng-model="inputPoint.x" placeholder="">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="pointz" class="col-sm-2 control-label">人物Z坐标</label>
+                        <div class="col-sm-10">
+                            <input type="number" class="form-control" id="pointz" ng-model="inputPoint.y" placeholder="">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="angle" class="col-sm-2 control-label">当前角度</label>
+                        <div class="col-sm-10">
+                            <input type="number" class="form-control" id="angle" ng-model="inputPoint.r" placeholder="">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <button ng-click="add()" type="button" class="btn btn-default" ng-class="{disabled:checkInputPoint()}">添加数据</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">坐标及角度记录</label>
+                        <div class="col-sm-10">
+                            <div ng-class="{hide:points.length===0}">
+                                <ul class="list-group">
+                                    <li class="list-group-item" ng-repeat="point in points" ng-class="{disabled:!point.vaild}">
+                                        <span class="pull-right">
+                                            <button ng-click="switchVaild(point)" type="button" class="btn btn-xs" ng-class="{false:'btn-success',true:'btn-danger'}[point.vaild]">{{point.vaild?'禁用':'启用'}}</button>
+                                            <button ng-click="delpoint(point)" type="button" class="btn btn-danger btn-xs">删除</button>
+                                        </span>
+                                        X:{{point.x}},Z:{{point.y}},角度:{{point.r}}
+                                    </li>
+                                </ul>
+                            </div>
+                            <button ng-click="calc()" type="button" class="btn btn-success">计算要塞坐标</button>
+                            <button ng-click="clear_data()" type="button" class="btn btn-danger">清空数据</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <a href="#collapseInfo" data-toggle="collapse">说明：</a>
+        </div>
+        <div id="collapseInfo" class="collapse">
+            <div class="panel-body">
+                <p>1.理论上2次定位即可计算出要塞坐标。</p>
+                <p>2.多次定位可修正坐标计算，使得计算更精确。</p>
+                <p>3.如多次定位中有部分次数定位到其他要塞，即几次定位时定位到了不同的要塞，则计算结果会出错，避免方法1为多次定位时肉眼判断末影眼飞行方向是否跟其他的不一致，2为取部分结果多次计算观察计算结果偏差是否太大。</p>
+            </div>
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <a href="#collapseInfo2" data-toggle="collapse">定位及计算方法：</a>
+        </div>
+        <div class="collapse" id="collapseInfo2">
+            <div class="panel-body">
+                <p>定位及计算方法：</p>
+                <p>1.准备好末影之眼。</p>
+                <p>2.按F3打开调试屏幕。</p>
+                <p>3.使用末影之眼，准星指向末影之眼悬停处，填写人物调试屏幕上的X坐标、Z坐标和当前角度（如下图的1、2、3处数据）</p>
+                <p><img src="../static/calc.png"></p>
+                <p>4.以当前方向为基准横向走动约几百米</p>
+                <p>5.重复步骤3、4</p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade myModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">提示</h4>
+            </div>
+            <div class="modal-body">
+                <p data-modal-body="modal_body">One fine body&hellip;</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-success modal_ok_button" data-dismiss="modal">确定</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://cdn.bootcss.com/angular.js/1.7.0/angular.min.js"></script>
+<script>
+    (function(){
+        function get_circle(points){
+            var count = points.length;
+            var circle = {x:0,y:0};
+            var radius = 0;
+            for(var i=0;i<count;i++){
+                var p1 = points[i];
+                if(!in_circle(p1)){
+                    circle.x = p1.x;
+                    circle.y = p1.y;
+                    radius = 0;
+                    for(var j=0;j<i;j++){
+                        var p2 = points[j];
+                        if(!in_circle(p2)){
+                            circle.x=(p1.x+p2.x)/2;
+                            circle.y=(p1.y+p2.y)/2;
+                            radius=get_distance(p1,circle);
+                            for(var k=0;k<j;k++){
+                                var p3 = points[k];
+                                if(!in_circle(p3)){
+                                    circle = solve(
+                                        (p2.x-p1.x)*2,
+                                        (p2.y-p1.y)*2,
+                                        Math.pow(p2.x,2) + Math.pow(p2.y,2) - Math.pow(p1.x,2) - Math.pow(p1.y,2),
+                                        (p3.x-p2.x)*2,
+                                        (p3.y-p2.y)*2,
+                                        Math.pow(p3.x,2) + Math.pow(p3.y,2) - Math.pow(p2.x,2) - Math.pow(p2.y,2)
+                                    );
+
+                                    radius=get_distance(circle,p3);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return {
+                point:circle,
+                radius:radius
+            };
+
+            function in_circle(point){
+                return get_distance(point,circle)<=radius;
+            }
+
+            function get_distance(point1,point2){
+                return Math.sqrt(Math.pow(point1.x-point2.x,2) + Math.pow(point1.y-point2.y,2));
+            }
+
+            function solve(a1,b1,c1,a2,b2,c2){
+                if(a1*b2-a2*b1==0) return circle;
+
+                var x = (c1*b2-c2*b1)/(a1*b2-a2*b1);
+                var y = (a1*c2-a2*c1)/(a1*b2-a2*b1);
+                return {x,y};
+            }
+        }
+
+        function calc_circle(datas){
+            var count = datas.length;
+            var points = [];
+            for(var i=0;i<count;i++){
+                var point1 = datas[i];
+                for(var j=0;j<i;j++){
+                    var point2 = datas[j];
+                    if(point1.r!=point2.r){
+                        var point = calc(point1,point2);
+                        points.push(point);
+                    }
+                }
+            }
+            return get_circle(points);
+        }
+
+        function calc(point1,point2){
+            var result = {};
+            result.x = (point1.x * Math.cos(point1.r) * Math.sin(point2.r) - point2.x * Math.sin(point1.r) * Math.cos(point2.r) + (point1.y - point2.y) * Math.sin(point1.r) * Math.sin(point2.r)) / Math.sin(point2.r - point1.r);
+            result.y = (point2.y * Math.cos(point1.r) * Math.sin(point2.r) - point1.y * Math.sin(point1.r) * Math.cos(point2.r) - (point1.x - point2.x) * Math.cos(point1.r) * Math.cos(point2.r)) / Math.sin(point2.r - point1.r);
+            return result;
+        }
+
+        function Calc(){
+            var datas = [];
+            var circle = false;
+            var count = 0;
+            this.add_point = function(x,z,angle){
+                datas.push({x:x,y:z,r:(Math.PI/180*angle)});
+            }
+            this.clear_point = function(){
+                datas = [];
+            }
+            this.get_circle = function(){
+                if(circle===false || count!=datas.length){
+                    count = datas.length;
+                    circle = calc_circle(datas);
+                }
+                circle.point.x = Math.round(circle.point.x);
+                circle.point.y = Math.round(circle.point.y);
+                circle.radius = Math.round(circle.radius);
+                return circle;
+            }
+        }
+
+        window.$$calc = Calc;
+    })();
+    (function () {
+        var app = angular.module('calc',[]);
+        app.controller('calcCtrl',['$scope',calcCtrl]);
+        function calcCtrl($scope) {
+            var calc = new $$calc();
+            $scope.points = [];
+            $scope.inputPoint = {
+                x:'',
+                y:'',
+                r:''
+            };
+
+            function readLocal(){
+                try {
+                    var temp = localStorage.minecraftStrongholdCalc;
+                    var json = JSON.parse(temp);
+                    if (typeof json === "object" && json.length) {
+                        for (var i = 0, l = json.length; i < l; i++) {
+                            var p = json[i];
+                            if (typeof p === "object" && p.hasOwnProperty("x") && p.hasOwnProperty("y") && p.hasOwnProperty("r") && p.hasOwnProperty("vaild")) {
+                                $scope.points.push(p);
+                            }
+                        }
+                    }
+                }
+                catch (e) {
+
+                }
+            }
+            readLocal();
+
+            function writeLocal(){
+                var json = [];
+                for (var i = 0, l = $scope.points.length; i < l; i++) {
+                    var point = $scope.points[i];
+                    json.push({x:point.x,y:point.y,r:point.r,vaild:point.vaild});
+                }
+                localStorage.minecraftStrongholdCalc = JSON.stringify(json);
+            }
+
+
+            $scope.checkInputPoint = function(){
+                return isNaN($scope.inputPoint.x) || isNaN($scope.inputPoint.y) || isNaN($scope.inputPoint.r) || (!$scope.inputPoint.x && !$scope.inputPoint.y && !$scope.inputPoint.r) || $scope.inputPoint.x==='' || $scope.inputPoint.y==='' || $scope.inputPoint.r==='';
+            };
+
+            $scope.add = function(){
+                if ($scope.checkInputPoint()){
+                    modal("X坐标或Z坐标或角度未填写或不是数字!");
+                    return;
+                }
+                $scope.points.push({
+                    x:$scope.inputPoint.x,
+                    y:$scope.inputPoint.y,
+                    r:$scope.inputPoint.r,
+                    vaild:true
+                });
+                $scope.inputPoint = {
+                    x:'',
+                    y:'',
+                    r:''
+                };
+                writeLocal();
+            };
+
+            $scope.switchVaild = function (point) {
+                point.vaild = !point.vaild;
+                writeLocal();
+            };
+
+            function modal(content, callback) {
+                function modalOnClick(){
+                    callback();
+                }
+                if (typeof callback !== "function") {
+                    callback = function () {
+
+                    };
+                }
+
+                var dom = $('.myModal').clone();
+                dom.find("p[data-modal-body]").html(content);
+                dom.find(".modal_ok_button").on('click',modalOnClick);
+                dom.modal({
+                    backdrop:'static',
+                    keyboard:false
+                }).on('hidden.bs.modal',function () {
+                    dom.remove();
+                });
+                return;
+
+                $("#myModal #modal_body").html(content);
+                $('#myModal').modal({
+                    backdrop:'static',
+                    keyboard:false
+                }).on('hidden.bs.modal',function () {
+                    $(this).find("#modal_ok_button").off("click",modalOnClick);
+                    // alert(1);
+                }).find("#modal_ok_button").on("click",modalOnClick);
+            }
+
+            $scope.calc = function () {
+                calc.clear_point();
+                var content = "";
+                var count = 0;
+                for (var i = 0, l = $scope.points.length; i < l; i++) {
+                    var point = $scope.points[i];
+                    if (point.vaild) {
+                        count+=1;
+                        calc.add_point(point.x,point.y,point.r);
+                        content += "<br />X:"+point.x+",Z:"+point.y+",角度:"+point.r;
+                    }
+                }
+                if (count < 2) {
+                    modal("最少需要2条启用的数据才能计算！");
+                    return;
+                }
+                var circle = calc.get_circle();
+
+                content = "<br />本次计算共使用了"+count+"条坐标数据，具体坐标分别为：" + content;
+                content = "计算出要塞的&nbsp;X坐标为:<strong class='badge'>"+circle.point.x+"</strong>,Z坐标为:<strong class='badge'>"+circle.point.y + "</strong>" + (count>2?",半径为:"+circle.radius:"") + content;
+                modal(content);
+            };
+
+            $scope.clear_data = function () {
+                modal("确定要清空所有记录的坐标点吗？",function () {
+                    $scope.$apply(function () {
+                        $scope.points = [];
+                        writeLocal();
+                    });
+                });
+            };
+
+            $scope.delpoint = function (point) {
+                modal("确定要删除X为"+point.x+",Z为"+point.y+",角度为"+point.r+"的坐标点吗？",function () {
+                    $scope.$apply(function () {
+                        var index = $scope.points.indexOf(point);
+                        $scope.points.splice(index, 1)
+                        writeLocal();
+                    });
+                });
+            };
+        }
+    })();
+</script>
+</body>
+</html>
