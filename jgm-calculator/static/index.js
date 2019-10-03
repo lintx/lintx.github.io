@@ -14314,7 +14314,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 
 var storage_key = "lintx-jgm-calculator-config";
 var worker = undefined;
-var version = "0.4";
+var version = "0.5";
 var app = new Vue({
   el: "#app",
   data: function data() {
