@@ -8,5 +8,8 @@ select.form-control {
     border-color: #5c34a7;
     color: #cecece; }
 
+.calculator-level {
+  min-width: 80px; }
+
 
 /*# sourceMappingURL=index.css.map*/
