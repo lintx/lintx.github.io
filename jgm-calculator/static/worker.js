@@ -14482,15 +14482,21 @@ function calculation(list, buff) {
       building.offline = renderSize(building.offline);
     });
   });
-  console.log(result.supplyMoney.addition);
   postMessage({
     mode: "result",
-    result: {
-      onlineMoney: result.onlineMoney.addition,
-      supplyMoney: result.supplyMoney.addition,
-      supplyRarity: result.supplyRarity.addition,
-      offlineMoney: result.offlineMoney.addition
-    }
+    result: [{
+      title: "在线金币优先策略",
+      addition: result.onlineMoney.addition
+    }, {
+      title: "供货优先、金币次之策略",
+      addition: result.supplyMoney.addition
+    }, {
+      title: "供货优先、橙色次之策略",
+      addition: result.supplyRarity.addition
+    }, {
+      title: "离线金币优先策略",
+      addition: result.offlineMoney.addition
+    }]
   });
   postMessage("done");
 }

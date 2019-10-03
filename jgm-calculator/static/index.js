@@ -14314,6 +14314,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 
 var storage_key = "lintx-jgm-calculator-config";
 var worker = undefined;
+var version = "0.4";
 var app = new Vue({
   el: "#app",
   data: function data() {
@@ -14327,7 +14328,7 @@ var app = new Vue({
     }
 
     var data = {
-      version: "0.3",
+      version: version,
       rarity: _Building__WEBPACK_IMPORTED_MODULE_0__["BuildingRarity"],
       buildings: [{
         type: _Building__WEBPACK_IMPORTED_MODULE_0__["BuildingType"].Residence,
@@ -14340,12 +14341,7 @@ var app = new Vue({
         list: [new _Builds_WoodFactory__WEBPACK_IMPORTED_MODULE_21__["default"](), new _Builds_PaperMill__WEBPACK_IMPORTED_MODULE_22__["default"](), new _Builds_WaterPlant__WEBPACK_IMPORTED_MODULE_23__["default"](), new _Builds_PowerPlant__WEBPACK_IMPORTED_MODULE_24__["default"](), new _Builds_FoodFactory__WEBPACK_IMPORTED_MODULE_25__["default"](), new _Builds_SteelPlant__WEBPACK_IMPORTED_MODULE_26__["default"](), new _Builds_TextileMill__WEBPACK_IMPORTED_MODULE_27__["default"](), new _Builds_PartsFactory__WEBPACK_IMPORTED_MODULE_28__["default"](), new _Builds_TencentMachinery__WEBPACK_IMPORTED_MODULE_29__["default"](), new _Builds_PeoplesOil__WEBPACK_IMPORTED_MODULE_30__["default"]()]
       }],
       buffs: [],
-      programs: {
-        onlineMoney: {},
-        supplyMoney: {},
-        supplyRarity: {},
-        offlineMoney: {}
-      },
+      programs: [],
       progress: 0,
       calculationing: false
     };
