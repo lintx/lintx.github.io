@@ -121,7 +121,7 @@ var BuffRange = {
   Online: "在线",
   Offline: "离线",
   Supply: "供货",
-  Residence: "住宅",
+  Residence: "住宅建筑",
   Business: "商业建筑",
   Industrial: "工业建筑",
   Targets: "特定建筑物"
@@ -149,14 +149,6 @@ function () {
   }
 
   _createClass(Buffs, [{
-    key: "clear",
-    value: function clear() {
-      this.Building = [];
-      this.Policy = [];
-      this.Photo = [];
-      this.Quest = [];
-    }
-  }, {
     key: "add",
     value: function add(source, buff) {
       var b = new Buff(buff.range, buff.target, buff.buff / 100);
@@ -182,11 +174,6 @@ function () {
       this.Quest.push(b);
     }
   }, {
-    key: "clearBuilding",
-    value: function clearBuilding() {
-      this.Building = [];
-    }
-  }, {
     key: "addBuilding",
     value: function addBuilding(building) {
       var _this = this;
@@ -194,31 +181,13 @@ function () {
       building.buffs.forEach(function (buff) {
         _this.Building.push(new Buff(buff.range, buff.target, building.getBuffValue(buff)));
       });
-    } // addBuilding(buff){
-    //
-    //     this.Building.Global += building.buff.Global;
-    //     this.Building.Online += building.buff.Online;
-    //     this.Building.Offline += building.buff.Offline;
-    //     this.Building.Supply += building.buff.Supply;
-    //     this.Building.Residence += building.buff.Residence;
-    //     this.Building.Business += building.buff.Business;
-    //     this.Building.Industrial += building.buff.Industrial;
-    //     this.Building.Targets = [...this.Building.Targets,...building.buff.Targets];
-    // }
-    // static getInstance() {
-    //     if (!Buffs.instance) {
-    //         Buffs.instance = new Buffs();
-    //     }
-    //     return Buffs.instance;
-    // }
-
+    }
   }, {
     key: "Calculation",
     value: function Calculation(source, building) {
       var result = {};
       result[BuffRange.Online] = 1;
-      result[BuffRange.Offline] = 1; // result[BuffRange.Supply] = 0;
-
+      result[BuffRange.Offline] = 1;
       var buffs;
 
       switch (source) {
@@ -256,9 +225,6 @@ function () {
           case BuffRange.Offline:
             result[BuffRange.Offline] += buff.buff;
             break;
-          // case BuffRange.Supply:
-          //     result[BuffRange.Supply] += buff.buff;
-          //     break;
 
           case BuffRange.Business:
             if (building.BuildingType === _Building__WEBPACK_IMPORTED_MODULE_0__["BuildingType"].Business) {
@@ -361,85 +327,20 @@ function () {
       var addition = {};
       var money = this.money;
       addition[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online] = money;
-      addition[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline] = money / 2; // addition[BuffRange.Supply] = 0;
-
+      addition[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline] = money / 2;
       [_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Building, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Policy, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Photo, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Quest].forEach(function (source) {
         var buff = buffs.Calculation(source, _this);
         Object.keys(buff).forEach(function (range) {
           addition[range] *= buff[range];
-        }); // globalBuff.Calculation(source,this).forEach((buff,range)=>{
-        //     // if (range===BuffRange.Supply){
-        //     //     addition[range] += buff;
-        //     // }else {
-        //         addition[range] *= buff;
-        //     // }
-        // });
+        });
       });
-      return addition; // [BuffRange.Online,BuffRange.Offline,BuffRange.Supply].forEach((range)=>{
-      //     addition[range] = this.money
-      //         * globalBuff.Calculation(BuffSource.Building,this) //建筑加成
-      //         * globalBuff.Calculation(BuffSource.Policy,this)   //政策加成
-      //         * globalBuff.Calculation(BuffSource.Photo,this)    //照片加成
-      //         * globalBuff.Calculation(BuffSource.Quest,this);   //任务加成
-      // });
-      // addition[BuffRange.Online] = this.money
-      //     * globalBuff.Calculation(BuffSource.Building,this) //建筑加成
-      //     * globalBuff.Calculation(BuffSource.Policy,this)   //政策加成
-      //     * globalBuff.Calculation(BuffSource.Photo,this)    //照片加成
-      //     * globalBuff.Calculation(BuffSource.Quest,this);   //任务加成
-      // Object.keys(BuffType).forEach((type)=>{
-      //     addition[type] = this.money
-      //         * this.getAdditionWithBuffAndType(globalBuff.Building,type) //建筑加成
-      //         * this.getAdditionWithBuffAndType(globalBuff.Policy,type)   //政策加成
-      //         * this.getAdditionWithBuffAndType(globalBuff.Photo,type)    //照片加成
-      //         * this.getAdditionWithBuffAndType(globalBuff.Quest,type);   //任务加成
-      // });
-    } // Calculation(type){
-    //     let globalBuff = Buffs.getInstance();
-    //     return this.money
-    //     * this.getAdditionWithBuffAndType(globalBuff.Building,type) //建筑加成
-    //     * this.getAdditionWithBuffAndType(globalBuff.Policy,type)   //政策加成
-    //     * this.getAdditionWithBuffAndType(globalBuff.Photo,type)    //照片加成
-    //     * this.getAdditionWithBuffAndType(globalBuff.Quest,type);   //任务加成
-    // }
-
+      return addition;
+    }
   }, {
     key: "getBuffValue",
     value: function getBuffValue(buff) {
       return buff.buff * this.star;
-    } // getAdditionWithBuffAndType(buff, type) {
-    //     let addition = 1;
-    //     buff.Targets.forEach((value)=>{
-    //         if (value.target.BuildingName===this.BuildingName){
-    //             addition += value.buff
-    //         }
-    //     });
-    //     switch (this.BuildingType) {
-    //         case Type.Residence:
-    //             addition += buff.Residence;
-    //             break;
-    //         case Type.Business:
-    //             addition += buff.Business;
-    //             break;
-    //         case Type.Industrial:
-    //             addition += buff.Industrial;
-    //     }
-    //
-    //     switch (type) {
-    //         case BuffType.Online:
-    //             addition += buff.Online;
-    //             break;
-    //         case BuffType.Offline:
-    //             addition += buff.Offline;
-    //             break;
-    //         case BuffType.Supply:
-    //             addition += buff.Supply;
-    //             break;
-    //     }
-    //
-    //     return addition;
-    // }
-
+    }
   }, {
     key: "money",
     get: function get() {
@@ -448,31 +349,25 @@ function () {
   }, {
     key: "multiple",
     get: function get() {
-      var multiple = 1;
-
       switch (this.star) {
         case 1:
-          multiple = 1;
-          break;
+          return 1;
 
         case 2:
-          multiple = 2;
-          break;
+          return 2;
 
         case 3:
-          multiple = 6;
-          break;
+          return 6;
 
         case 4:
-          multiple = 24;
-          break;
+          return 24;
 
         case 5:
-          multiple = 120;
-          break;
-      }
+          return 120;
 
-      return multiple;
+        default:
+          return 1;
+      }
     }
   }]);
 
@@ -2378,13 +2273,6 @@ buildings.forEach(function (item) {
 });
 
 function calculation(list, buff) {
-  // let buffs = Buffs.getInstance();
-  // buffs.clear();
-  // buff.forEach(function (source) {
-  //     source.list.forEach(function (buff) {
-  //         buffs.add(source.type,new Buff(buff.range,buff.target,buff.buff));
-  //     });
-  // });
   var programs = [];
   list.forEach(function (building) {
     var program = [];
@@ -2397,7 +2285,7 @@ function calculation(list, buff) {
           buildings.forEach(function (item) {
             if (item.BuildingName === c.name) {
               item.star = c.star;
-              item.buff = c.buff;
+              item.quest = c.quest;
               p.push(item);
               return true;
             }
@@ -2525,30 +2413,10 @@ function calculation(list, buff) {
           result.supplyRarity.legendary = legendary;
           result.supplyRarity.rare = rare;
           result.supplyRarity.addition = addition;
-        } // postMessage({
-        //     addition:addition,
-        //     building:building
-        // });
-
+        }
       });
     });
-  }); // postMessage({
-  //     mode:"onlineMoney",
-  //     addition:result.onlineMoney.addition
-  // });
-  // postMessage({
-  //     mode:"supplyMoney",
-  //     addition:result.supplyMoney.addition
-  // });
-  // postMessage({
-  //     mode:"supplyRarity",
-  //     addition:result.supplyRarity.addition
-  // });
-  // postMessage({
-  //     mode:"offlineMoney",
-  //     addition:result.offlineMoney.addition
-  // });
-
+  });
   postMessage({
     mode: "result",
     result: {
