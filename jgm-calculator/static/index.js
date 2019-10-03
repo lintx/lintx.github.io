@@ -2397,7 +2397,7 @@ var app = new Vue({
       });
 
       if (typeof Worker !== "undefined") {
-        worker = new Worker("static/worker.js");
+        worker = new Worker("static/worker.js?v=0.2");
 
         var _self = this;
 
