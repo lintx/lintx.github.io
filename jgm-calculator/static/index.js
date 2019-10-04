@@ -1,6 +1,66 @@
 /******/ (function(modules) { // webpackBootstrap
+/******/ 	// install a JSONP callback for chunk loading
+/******/ 	function webpackJsonpCallback(data) {
+/******/ 		var chunkIds = data[0];
+/******/ 		var moreModules = data[1];
+/******/ 		var executeModules = data[2];
+/******/
+/******/ 		// add "moreModules" to the modules object,
+/******/ 		// then flag all "chunkIds" as loaded and fire callback
+/******/ 		var moduleId, chunkId, i = 0, resolves = [];
+/******/ 		for(;i < chunkIds.length; i++) {
+/******/ 			chunkId = chunkIds[i];
+/******/ 			if(Object.prototype.hasOwnProperty.call(installedChunks, chunkId) && installedChunks[chunkId]) {
+/******/ 				resolves.push(installedChunks[chunkId][0]);
+/******/ 			}
+/******/ 			installedChunks[chunkId] = 0;
+/******/ 		}
+/******/ 		for(moduleId in moreModules) {
+/******/ 			if(Object.prototype.hasOwnProperty.call(moreModules, moduleId)) {
+/******/ 				modules[moduleId] = moreModules[moduleId];
+/******/ 			}
+/******/ 		}
+/******/ 		if(parentJsonpFunction) parentJsonpFunction(data);
+/******/
+/******/ 		while(resolves.length) {
+/******/ 			resolves.shift()();
+/******/ 		}
+/******/
+/******/ 		// add entry modules from loaded chunk to deferred list
+/******/ 		deferredModules.push.apply(deferredModules, executeModules || []);
+/******/
+/******/ 		// run deferred modules when all chunks ready
+/******/ 		return checkDeferredModules();
+/******/ 	};
+/******/ 	function checkDeferredModules() {
+/******/ 		var result;
+/******/ 		for(var i = 0; i < deferredModules.length; i++) {
+/******/ 			var deferredModule = deferredModules[i];
+/******/ 			var fulfilled = true;
+/******/ 			for(var j = 1; j < deferredModule.length; j++) {
+/******/ 				var depId = deferredModule[j];
+/******/ 				if(installedChunks[depId] !== 0) fulfilled = false;
+/******/ 			}
+/******/ 			if(fulfilled) {
+/******/ 				deferredModules.splice(i--, 1);
+/******/ 				result = __webpack_require__(__webpack_require__.s = deferredModule[0]);
+/******/ 			}
+/******/ 		}
+/******/
+/******/ 		return result;
+/******/ 	}
+/******/
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
+/******/
+/******/ 	// object to store loaded and loading chunks
+/******/ 	// undefined = chunk not loaded, null = chunk preloaded/prefetched
+/******/ 	// Promise = chunk loading, 0 = chunk loaded
+/******/ 	var installedChunks = {
+/******/ 		"index": 0
+/******/ 	};
+/******/
+/******/ 	var deferredModules = [];
 /******/
 /******/ 	// The require function
 /******/ 	function __webpack_require__(moduleId) {
@@ -79,9 +139,18 @@
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
 /******/
+/******/ 	var jsonpArray = window["webpackJsonp"] = window["webpackJsonp"] || [];
+/******/ 	var oldJsonpFunction = jsonpArray.push.bind(jsonpArray);
+/******/ 	jsonpArray.push = webpackJsonpCallback;
+/******/ 	jsonpArray = jsonpArray.slice();
+/******/ 	for(var i = 0; i < jsonpArray.length; i++) webpackJsonpCallback(jsonpArray[i]);
+/******/ 	var parentJsonpFunction = oldJsonpFunction;
 /******/
-/******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = "./src/js/index.js");
+/******/
+/******/ 	// add entry module to deferred list
+/******/ 	deferredModules.push(["./src/js/index.js","vendor~index"]);
+/******/ 	// run deferred modules when ready
+/******/ 	return checkDeferredModules();
 /******/ })
 /************************************************************************/
 /******/ ({
@@ -1711,7 +1780,7 @@ function (_Building) {
   }, {
     key: "getBuffValue",
     value: function getBuffValue(buff) {
-      //TODO:这里的公式可能有错误
+      //小型公寓的buff也比较特殊，0.1/0.25/0.4/0.55/0.7
       return _get(_getPrototypeOf(SmallApartment.prototype), "getBuffValue", this).call(this, buff) - 0.05;
     }
   }]);
@@ -2102,6 +2171,10 @@ function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) ===
 
 function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
 
+function _get(target, property, receiver) { if (typeof Reflect !== "undefined" && Reflect.get) { _get = Reflect.get; } else { _get = function _get(target, property, receiver) { var base = _superPropBase(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(receiver); } return desc.value; }; } return _get(target, property, receiver || target); }
+
+function _superPropBase(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = _getPrototypeOf(object); if (object === null) break; } return object; }
+
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
@@ -2125,7 +2198,14 @@ function (_Building) {
   _createClass(WaterPlant, [{
     key: "initBuffs",
     value: function initBuffs() {
-      this.buffs.push(new _Buff__WEBPACK_IMPORTED_MODULE_1__["Buff"](_Buff__WEBPACK_IMPORTED_MODULE_1__["BuffRange"].Offline, _Buff__WEBPACK_IMPORTED_MODULE_1__["BuffRange"].Offline, 1));
+      this.buffs.push(new _Buff__WEBPACK_IMPORTED_MODULE_1__["Buff"](_Buff__WEBPACK_IMPORTED_MODULE_1__["BuffRange"].Offline, _Buff__WEBPACK_IMPORTED_MODULE_1__["BuffRange"].Offline, 0.05));
+    }
+  }, {
+    key: "getBuffValue",
+    value: function getBuffValue(buff) {
+      //水厂的buff也比较特殊，0.1/0.15/0.2/0.25/0.3
+      //可能有错
+      return _get(_getPrototypeOf(WaterPlant.prototype), "getBuffValue", this).call(this, buff) + 0.05;
     }
   }]);
 
@@ -2147,7 +2227,7 @@ function (_Building) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Building__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../Building */ "./src/js/Building.js");
 /* harmony import */ var _Buff__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../Buff */ "./src/js/Buff.js");
-/* harmony import */ var _VegetableMarket__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./VegetableMarket */ "./src/js/Builds/VegetableMarket.js");
+/* harmony import */ var _Chalet__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Chalet */ "./src/js/Builds/Chalet.js");
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -2184,7 +2264,7 @@ function (_Building) {
   _createClass(WoodFactory, [{
     key: "initBuffs",
     value: function initBuffs() {
-      this.buffs.push(new _Buff__WEBPACK_IMPORTED_MODULE_1__["Buff"](_Buff__WEBPACK_IMPORTED_MODULE_1__["BuffRange"].Targets, new _VegetableMarket__WEBPACK_IMPORTED_MODULE_2__["default"]().BuildingName, 1));
+      this.buffs.push(new _Buff__WEBPACK_IMPORTED_MODULE_1__["Buff"](_Buff__WEBPACK_IMPORTED_MODULE_1__["BuffRange"].Targets, new _Chalet__WEBPACK_IMPORTED_MODULE_2__["default"]().BuildingName, 1));
     }
   }]);
 
@@ -14243,41 +14323,51 @@ function getCost(level, rarity) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _Building__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Building */ "./src/js/Building.js");
-/* harmony import */ var _Builds_Chalet__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Builds/Chalet */ "./src/js/Builds/Chalet.js");
-/* harmony import */ var _Builds_SteelStructureHouse__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Builds/SteelStructureHouse */ "./src/js/Builds/SteelStructureHouse.js");
-/* harmony import */ var _Builds_Bungalow__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./Builds/Bungalow */ "./src/js/Builds/Bungalow.js");
-/* harmony import */ var _Builds_SmallApartment__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./Builds/SmallApartment */ "./src/js/Builds/SmallApartment.js");
-/* harmony import */ var _Builds_Residential__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./Builds/Residential */ "./src/js/Builds/Residential.js");
-/* harmony import */ var _Builds_TalentApartment__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./Builds/TalentApartment */ "./src/js/Builds/TalentApartment.js");
-/* harmony import */ var _Builds_GardenHouse__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./Builds/GardenHouse */ "./src/js/Builds/GardenHouse.js");
-/* harmony import */ var _Builds_ChineseSmallBuilding__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./Builds/ChineseSmallBuilding */ "./src/js/Builds/ChineseSmallBuilding.js");
-/* harmony import */ var _Builds_SkyVilla__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./Builds/SkyVilla */ "./src/js/Builds/SkyVilla.js");
-/* harmony import */ var _Builds_RevivalMansion__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./Builds/RevivalMansion */ "./src/js/Builds/RevivalMansion.js");
-/* harmony import */ var _Builds_ConvenienceStore__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./Builds/ConvenienceStore */ "./src/js/Builds/ConvenienceStore.js");
-/* harmony import */ var _Builds_School__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./Builds/School */ "./src/js/Builds/School.js");
-/* harmony import */ var _Builds_ClothingStore__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./Builds/ClothingStore */ "./src/js/Builds/ClothingStore.js");
-/* harmony import */ var _Builds_HardwareStore__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./Builds/HardwareStore */ "./src/js/Builds/HardwareStore.js");
-/* harmony import */ var _Builds_VegetableMarket__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./Builds/VegetableMarket */ "./src/js/Builds/VegetableMarket.js");
-/* harmony import */ var _Builds_BookCity__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./Builds/BookCity */ "./src/js/Builds/BookCity.js");
-/* harmony import */ var _Builds_BusinessCenter__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./Builds/BusinessCenter */ "./src/js/Builds/BusinessCenter.js");
-/* harmony import */ var _Builds_GasStation__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ./Builds/GasStation */ "./src/js/Builds/GasStation.js");
-/* harmony import */ var _Builds_FolkFood__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ./Builds/FolkFood */ "./src/js/Builds/FolkFood.js");
-/* harmony import */ var _Builds_MediaVoice__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ./Builds/MediaVoice */ "./src/js/Builds/MediaVoice.js");
-/* harmony import */ var _Builds_WoodFactory__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ./Builds/WoodFactory */ "./src/js/Builds/WoodFactory.js");
-/* harmony import */ var _Builds_PaperMill__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ./Builds/PaperMill */ "./src/js/Builds/PaperMill.js");
-/* harmony import */ var _Builds_WaterPlant__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! ./Builds/WaterPlant */ "./src/js/Builds/WaterPlant.js");
-/* harmony import */ var _Builds_PowerPlant__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! ./Builds/PowerPlant */ "./src/js/Builds/PowerPlant.js");
-/* harmony import */ var _Builds_FoodFactory__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! ./Builds/FoodFactory */ "./src/js/Builds/FoodFactory.js");
-/* harmony import */ var _Builds_SteelPlant__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! ./Builds/SteelPlant */ "./src/js/Builds/SteelPlant.js");
-/* harmony import */ var _Builds_TextileMill__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! ./Builds/TextileMill */ "./src/js/Builds/TextileMill.js");
-/* harmony import */ var _Builds_PartsFactory__WEBPACK_IMPORTED_MODULE_28__ = __webpack_require__(/*! ./Builds/PartsFactory */ "./src/js/Builds/PartsFactory.js");
-/* harmony import */ var _Builds_TencentMachinery__WEBPACK_IMPORTED_MODULE_29__ = __webpack_require__(/*! ./Builds/TencentMachinery */ "./src/js/Builds/TencentMachinery.js");
-/* harmony import */ var _Builds_PeoplesOil__WEBPACK_IMPORTED_MODULE_30__ = __webpack_require__(/*! ./Builds/PeoplesOil */ "./src/js/Builds/PeoplesOil.js");
-/* harmony import */ var _css_index_scss__WEBPACK_IMPORTED_MODULE_31__ = __webpack_require__(/*! ../css/index.scss */ "./src/css/index.scss");
-/* harmony import */ var _css_index_scss__WEBPACK_IMPORTED_MODULE_31___default = /*#__PURE__*/__webpack_require__.n(_css_index_scss__WEBPACK_IMPORTED_MODULE_31__);
+/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! vue */ "./node_modules/vue/dist/vue.esm.js");
+/* harmony import */ var _Building__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Building */ "./src/js/Building.js");
+/* harmony import */ var _Builds_Chalet__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Builds/Chalet */ "./src/js/Builds/Chalet.js");
+/* harmony import */ var _Builds_SteelStructureHouse__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./Builds/SteelStructureHouse */ "./src/js/Builds/SteelStructureHouse.js");
+/* harmony import */ var _Builds_Bungalow__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./Builds/Bungalow */ "./src/js/Builds/Bungalow.js");
+/* harmony import */ var _Builds_SmallApartment__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./Builds/SmallApartment */ "./src/js/Builds/SmallApartment.js");
+/* harmony import */ var _Builds_Residential__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./Builds/Residential */ "./src/js/Builds/Residential.js");
+/* harmony import */ var _Builds_TalentApartment__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./Builds/TalentApartment */ "./src/js/Builds/TalentApartment.js");
+/* harmony import */ var _Builds_GardenHouse__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./Builds/GardenHouse */ "./src/js/Builds/GardenHouse.js");
+/* harmony import */ var _Builds_ChineseSmallBuilding__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./Builds/ChineseSmallBuilding */ "./src/js/Builds/ChineseSmallBuilding.js");
+/* harmony import */ var _Builds_SkyVilla__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./Builds/SkyVilla */ "./src/js/Builds/SkyVilla.js");
+/* harmony import */ var _Builds_RevivalMansion__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./Builds/RevivalMansion */ "./src/js/Builds/RevivalMansion.js");
+/* harmony import */ var _Builds_ConvenienceStore__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./Builds/ConvenienceStore */ "./src/js/Builds/ConvenienceStore.js");
+/* harmony import */ var _Builds_School__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./Builds/School */ "./src/js/Builds/School.js");
+/* harmony import */ var _Builds_ClothingStore__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./Builds/ClothingStore */ "./src/js/Builds/ClothingStore.js");
+/* harmony import */ var _Builds_HardwareStore__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./Builds/HardwareStore */ "./src/js/Builds/HardwareStore.js");
+/* harmony import */ var _Builds_VegetableMarket__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./Builds/VegetableMarket */ "./src/js/Builds/VegetableMarket.js");
+/* harmony import */ var _Builds_BookCity__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./Builds/BookCity */ "./src/js/Builds/BookCity.js");
+/* harmony import */ var _Builds_BusinessCenter__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ./Builds/BusinessCenter */ "./src/js/Builds/BusinessCenter.js");
+/* harmony import */ var _Builds_GasStation__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ./Builds/GasStation */ "./src/js/Builds/GasStation.js");
+/* harmony import */ var _Builds_FolkFood__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ./Builds/FolkFood */ "./src/js/Builds/FolkFood.js");
+/* harmony import */ var _Builds_MediaVoice__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ./Builds/MediaVoice */ "./src/js/Builds/MediaVoice.js");
+/* harmony import */ var _Builds_WoodFactory__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ./Builds/WoodFactory */ "./src/js/Builds/WoodFactory.js");
+/* harmony import */ var _Builds_PaperMill__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! ./Builds/PaperMill */ "./src/js/Builds/PaperMill.js");
+/* harmony import */ var _Builds_WaterPlant__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! ./Builds/WaterPlant */ "./src/js/Builds/WaterPlant.js");
+/* harmony import */ var _Builds_PowerPlant__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! ./Builds/PowerPlant */ "./src/js/Builds/PowerPlant.js");
+/* harmony import */ var _Builds_FoodFactory__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! ./Builds/FoodFactory */ "./src/js/Builds/FoodFactory.js");
+/* harmony import */ var _Builds_SteelPlant__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! ./Builds/SteelPlant */ "./src/js/Builds/SteelPlant.js");
+/* harmony import */ var _Builds_TextileMill__WEBPACK_IMPORTED_MODULE_28__ = __webpack_require__(/*! ./Builds/TextileMill */ "./src/js/Builds/TextileMill.js");
+/* harmony import */ var _Builds_PartsFactory__WEBPACK_IMPORTED_MODULE_29__ = __webpack_require__(/*! ./Builds/PartsFactory */ "./src/js/Builds/PartsFactory.js");
+/* harmony import */ var _Builds_TencentMachinery__WEBPACK_IMPORTED_MODULE_30__ = __webpack_require__(/*! ./Builds/TencentMachinery */ "./src/js/Builds/TencentMachinery.js");
+/* harmony import */ var _Builds_PeoplesOil__WEBPACK_IMPORTED_MODULE_31__ = __webpack_require__(/*! ./Builds/PeoplesOil */ "./src/js/Builds/PeoplesOil.js");
 /* harmony import */ var _Buff__WEBPACK_IMPORTED_MODULE_32__ = __webpack_require__(/*! ./Buff */ "./src/js/Buff.js");
+/* harmony import */ var bootstrap_vue__WEBPACK_IMPORTED_MODULE_33__ = __webpack_require__(/*! bootstrap-vue */ "./node_modules/bootstrap-vue/esm/index.js");
+/* harmony import */ var portal_vue__WEBPACK_IMPORTED_MODULE_34__ = __webpack_require__(/*! portal-vue */ "./node_modules/portal-vue/dist/portal-vue.common.js");
+/* harmony import */ var portal_vue__WEBPACK_IMPORTED_MODULE_34___default = /*#__PURE__*/__webpack_require__.n(portal_vue__WEBPACK_IMPORTED_MODULE_34__);
+/* harmony import */ var bootstrap_vue_dist_bootstrap_vue_css__WEBPACK_IMPORTED_MODULE_35__ = __webpack_require__(/*! bootstrap-vue/dist/bootstrap-vue.css */ "./node_modules/bootstrap-vue/dist/bootstrap-vue.css");
+/* harmony import */ var bootstrap_vue_dist_bootstrap_vue_css__WEBPACK_IMPORTED_MODULE_35___default = /*#__PURE__*/__webpack_require__.n(bootstrap_vue_dist_bootstrap_vue_css__WEBPACK_IMPORTED_MODULE_35__);
+/* harmony import */ var _css_index_scss__WEBPACK_IMPORTED_MODULE_36__ = __webpack_require__(/*! ../css/index.scss */ "./src/css/index.scss");
+/* harmony import */ var _css_index_scss__WEBPACK_IMPORTED_MODULE_36___default = /*#__PURE__*/__webpack_require__.n(_css_index_scss__WEBPACK_IMPORTED_MODULE_36__);
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+
+
+
 
 
 
@@ -14314,8 +14404,10 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 
 var storage_key = "lintx-jgm-calculator-config";
 var worker = undefined;
-var version = "0.6";
-var app = new Vue({
+var version = "0.7";
+vue__WEBPACK_IMPORTED_MODULE_0__["default"].use(bootstrap_vue__WEBPACK_IMPORTED_MODULE_33__["default"]);
+vue__WEBPACK_IMPORTED_MODULE_0__["default"].use(portal_vue__WEBPACK_IMPORTED_MODULE_34___default.a);
+var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
   el: "#app",
   data: function data() {
     var config = null;
@@ -14329,17 +14421,20 @@ var app = new Vue({
 
     var data = {
       version: version,
-      rarity: _Building__WEBPACK_IMPORTED_MODULE_0__["BuildingRarity"],
-      supplyStep50: false,
+      rarity: _Building__WEBPACK_IMPORTED_MODULE_1__["BuildingRarity"],
+      config: {
+        supplyStep50: false,
+        allBuildingLevel1: false
+      },
       buildings: [{
-        type: _Building__WEBPACK_IMPORTED_MODULE_0__["BuildingType"].Residence,
-        list: [new _Builds_Chalet__WEBPACK_IMPORTED_MODULE_1__["default"](), new _Builds_SteelStructureHouse__WEBPACK_IMPORTED_MODULE_2__["default"](), new _Builds_Bungalow__WEBPACK_IMPORTED_MODULE_3__["default"](), new _Builds_SmallApartment__WEBPACK_IMPORTED_MODULE_4__["default"](), new _Builds_Residential__WEBPACK_IMPORTED_MODULE_5__["default"](), new _Builds_TalentApartment__WEBPACK_IMPORTED_MODULE_6__["default"](), new _Builds_GardenHouse__WEBPACK_IMPORTED_MODULE_7__["default"](), new _Builds_ChineseSmallBuilding__WEBPACK_IMPORTED_MODULE_8__["default"](), new _Builds_SkyVilla__WEBPACK_IMPORTED_MODULE_9__["default"](), new _Builds_RevivalMansion__WEBPACK_IMPORTED_MODULE_10__["default"]()]
+        type: _Building__WEBPACK_IMPORTED_MODULE_1__["BuildingType"].Residence,
+        list: [new _Builds_Chalet__WEBPACK_IMPORTED_MODULE_2__["default"](), new _Builds_SteelStructureHouse__WEBPACK_IMPORTED_MODULE_3__["default"](), new _Builds_Bungalow__WEBPACK_IMPORTED_MODULE_4__["default"](), new _Builds_SmallApartment__WEBPACK_IMPORTED_MODULE_5__["default"](), new _Builds_Residential__WEBPACK_IMPORTED_MODULE_6__["default"](), new _Builds_TalentApartment__WEBPACK_IMPORTED_MODULE_7__["default"](), new _Builds_GardenHouse__WEBPACK_IMPORTED_MODULE_8__["default"](), new _Builds_ChineseSmallBuilding__WEBPACK_IMPORTED_MODULE_9__["default"](), new _Builds_SkyVilla__WEBPACK_IMPORTED_MODULE_10__["default"](), new _Builds_RevivalMansion__WEBPACK_IMPORTED_MODULE_11__["default"]()]
       }, {
-        type: _Building__WEBPACK_IMPORTED_MODULE_0__["BuildingType"].Business,
-        list: [new _Builds_ConvenienceStore__WEBPACK_IMPORTED_MODULE_11__["default"](), new _Builds_School__WEBPACK_IMPORTED_MODULE_12__["default"](), new _Builds_ClothingStore__WEBPACK_IMPORTED_MODULE_13__["default"](), new _Builds_HardwareStore__WEBPACK_IMPORTED_MODULE_14__["default"](), new _Builds_VegetableMarket__WEBPACK_IMPORTED_MODULE_15__["default"](), new _Builds_BookCity__WEBPACK_IMPORTED_MODULE_16__["default"](), new _Builds_BusinessCenter__WEBPACK_IMPORTED_MODULE_17__["default"](), new _Builds_GasStation__WEBPACK_IMPORTED_MODULE_18__["default"](), new _Builds_FolkFood__WEBPACK_IMPORTED_MODULE_19__["default"](), new _Builds_MediaVoice__WEBPACK_IMPORTED_MODULE_20__["default"]()]
+        type: _Building__WEBPACK_IMPORTED_MODULE_1__["BuildingType"].Business,
+        list: [new _Builds_ConvenienceStore__WEBPACK_IMPORTED_MODULE_12__["default"](), new _Builds_School__WEBPACK_IMPORTED_MODULE_13__["default"](), new _Builds_ClothingStore__WEBPACK_IMPORTED_MODULE_14__["default"](), new _Builds_HardwareStore__WEBPACK_IMPORTED_MODULE_15__["default"](), new _Builds_VegetableMarket__WEBPACK_IMPORTED_MODULE_16__["default"](), new _Builds_BookCity__WEBPACK_IMPORTED_MODULE_17__["default"](), new _Builds_BusinessCenter__WEBPACK_IMPORTED_MODULE_18__["default"](), new _Builds_GasStation__WEBPACK_IMPORTED_MODULE_19__["default"](), new _Builds_FolkFood__WEBPACK_IMPORTED_MODULE_20__["default"](), new _Builds_MediaVoice__WEBPACK_IMPORTED_MODULE_21__["default"]()]
       }, {
-        type: _Building__WEBPACK_IMPORTED_MODULE_0__["BuildingType"].Industrial,
-        list: [new _Builds_WoodFactory__WEBPACK_IMPORTED_MODULE_21__["default"](), new _Builds_PaperMill__WEBPACK_IMPORTED_MODULE_22__["default"](), new _Builds_WaterPlant__WEBPACK_IMPORTED_MODULE_23__["default"](), new _Builds_PowerPlant__WEBPACK_IMPORTED_MODULE_24__["default"](), new _Builds_FoodFactory__WEBPACK_IMPORTED_MODULE_25__["default"](), new _Builds_SteelPlant__WEBPACK_IMPORTED_MODULE_26__["default"](), new _Builds_TextileMill__WEBPACK_IMPORTED_MODULE_27__["default"](), new _Builds_PartsFactory__WEBPACK_IMPORTED_MODULE_28__["default"](), new _Builds_TencentMachinery__WEBPACK_IMPORTED_MODULE_29__["default"](), new _Builds_PeoplesOil__WEBPACK_IMPORTED_MODULE_30__["default"]()]
+        type: _Building__WEBPACK_IMPORTED_MODULE_1__["BuildingType"].Industrial,
+        list: [new _Builds_WoodFactory__WEBPACK_IMPORTED_MODULE_22__["default"](), new _Builds_PaperMill__WEBPACK_IMPORTED_MODULE_23__["default"](), new _Builds_WaterPlant__WEBPACK_IMPORTED_MODULE_24__["default"](), new _Builds_PowerPlant__WEBPACK_IMPORTED_MODULE_25__["default"](), new _Builds_FoodFactory__WEBPACK_IMPORTED_MODULE_26__["default"](), new _Builds_SteelPlant__WEBPACK_IMPORTED_MODULE_27__["default"](), new _Builds_TextileMill__WEBPACK_IMPORTED_MODULE_28__["default"](), new _Builds_PartsFactory__WEBPACK_IMPORTED_MODULE_29__["default"](), new _Builds_TencentMachinery__WEBPACK_IMPORTED_MODULE_30__["default"](), new _Builds_PeoplesOil__WEBPACK_IMPORTED_MODULE_31__["default"]()]
       }],
       buffs: [],
       programs: [],
@@ -14466,9 +14561,7 @@ var app = new Vue({
         worker.postMessage({
           list: list,
           buff: this.buffs,
-          config: {
-            supplyStep50: this.supplyStep50
-          }
+          config: this.config
         });
       } else {//抱歉! Web Worker 不支持
       }
@@ -14505,10 +14598,39 @@ var app = new Vue({
         config.buff.push(b);
       });
       localStorage.setItem(storage_key, JSON.stringify(config));
+      this.$bvToast.toast('配置保存成功', {
+        title: '提示',
+        variant: 'success',
+        //danger,warning,info,primary,secondary,default
+        solid: true
+      });
     },
     clear: function clear() {
-      localStorage.removeItem(storage_key);
-      Object.assign(this.$data, this.$options.data());
+      var _this = this;
+
+      this.$bvModal.msgBoxConfirm('是否要清除本地存档？清除后不可恢复，请谨慎操作！', {
+        title: '请确认',
+        size: 'sm',
+        buttonSize: 'sm',
+        okVariant: 'danger',
+        okTitle: '确认',
+        cancelTitle: '取消',
+        footerClass: 'p-2',
+        hideHeaderClose: false,
+        centered: true
+      }).then(function (value) {
+        if (value) {
+          localStorage.removeItem(storage_key);
+          Object.assign(_this.$data, _this.$options.data());
+
+          _this.$bvToast.toast('配置已清除', {
+            title: '提示',
+            variant: 'success',
+            //danger,warning,info,primary,secondary,default
+            solid: true
+          });
+        }
+      })["catch"](function (err) {});
     },
     stop: function stop() {
       try {
@@ -14516,6 +14638,24 @@ var app = new Vue({
         worker = undefined;
         this.calculationIng = false;
       } catch (e) {}
+    },
+    "export": function _export() {
+      var h = this.$createElement;
+      var titleVNode = h('div', {
+        domProps: {
+          innerHTML: '导出配置'
+        }
+      });
+      var messageVNode = h('div', {
+        "class": ['foobar']
+      }, [h('p', {}, ['配置内容'])]);
+      this.$bvModal.msgBoxOk([messageVNode], {
+        title: [titleVNode],
+        buttonSize: 'sm',
+        okTitle: '确认',
+        centered: true,
+        size: 'sm'
+      });
     }
   }
 });

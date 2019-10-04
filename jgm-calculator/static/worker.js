@@ -1700,7 +1700,7 @@ function (_Building) {
   }, {
     key: "getBuffValue",
     value: function getBuffValue(buff) {
-      //TODO:这里的公式可能有错误
+      //小型公寓的buff也比较特殊，0.1/0.25/0.4/0.55/0.7
       return _get(_getPrototypeOf(SmallApartment.prototype), "getBuffValue", this).call(this, buff) - 0.05;
     }
   }]);
@@ -2091,6 +2091,10 @@ function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) ===
 
 function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
 
+function _get(target, property, receiver) { if (typeof Reflect !== "undefined" && Reflect.get) { _get = Reflect.get; } else { _get = function _get(target, property, receiver) { var base = _superPropBase(target, property); if (!base) return; var desc = Object.getOwnPropertyDescriptor(base, property); if (desc.get) { return desc.get.call(receiver); } return desc.value; }; } return _get(target, property, receiver || target); }
+
+function _superPropBase(object, property) { while (!Object.prototype.hasOwnProperty.call(object, property)) { object = _getPrototypeOf(object); if (object === null) break; } return object; }
+
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
@@ -2114,7 +2118,14 @@ function (_Building) {
   _createClass(WaterPlant, [{
     key: "initBuffs",
     value: function initBuffs() {
-      this.buffs.push(new _Buff__WEBPACK_IMPORTED_MODULE_1__["Buff"](_Buff__WEBPACK_IMPORTED_MODULE_1__["BuffRange"].Offline, _Buff__WEBPACK_IMPORTED_MODULE_1__["BuffRange"].Offline, 1));
+      this.buffs.push(new _Buff__WEBPACK_IMPORTED_MODULE_1__["Buff"](_Buff__WEBPACK_IMPORTED_MODULE_1__["BuffRange"].Offline, _Buff__WEBPACK_IMPORTED_MODULE_1__["BuffRange"].Offline, 0.05));
+    }
+  }, {
+    key: "getBuffValue",
+    value: function getBuffValue(buff) {
+      //水厂的buff也比较特殊，0.1/0.15/0.2/0.25/0.3
+      //可能有错
+      return _get(_getPrototypeOf(WaterPlant.prototype), "getBuffValue", this).call(this, buff) + 0.05;
     }
   }]);
 
@@ -2136,7 +2147,7 @@ function (_Building) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Building__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../Building */ "./src/js/Building.js");
 /* harmony import */ var _Buff__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../Buff */ "./src/js/Buff.js");
-/* harmony import */ var _VegetableMarket__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./VegetableMarket */ "./src/js/Builds/VegetableMarket.js");
+/* harmony import */ var _Chalet__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Chalet */ "./src/js/Builds/Chalet.js");
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -2173,7 +2184,7 @@ function (_Building) {
   _createClass(WoodFactory, [{
     key: "initBuffs",
     value: function initBuffs() {
-      this.buffs.push(new _Buff__WEBPACK_IMPORTED_MODULE_1__["Buff"](_Buff__WEBPACK_IMPORTED_MODULE_1__["BuffRange"].Targets, new _VegetableMarket__WEBPACK_IMPORTED_MODULE_2__["default"]().BuildingName, 1));
+      this.buffs.push(new _Buff__WEBPACK_IMPORTED_MODULE_1__["Buff"](_Buff__WEBPACK_IMPORTED_MODULE_1__["BuffRange"].Targets, new _Chalet__WEBPACK_IMPORTED_MODULE_2__["default"]().BuildingName, 1));
     }
   }]);
 
@@ -14331,7 +14342,13 @@ function calculation(list, buff, config) {
             if (item.BuildingName === c.name) {
               item.star = c.star;
               item.quest = c.quest;
-              item.level = c.level;
+
+              if (!config.allBuildingLevel1) {
+                item.level = c.level;
+              } else {
+                item.level = 1;
+              }
+
               p.push(item);
               return true;
             }
@@ -14491,7 +14508,7 @@ function calculation(list, buff, config) {
               result.supplyLegendaryMoney.addition = addition;
               result.supplyLegendaryMoney.buffs = buffs;
             }
-          } else if (legendary > result.supplyRarity.legendary) {
+          } else if (legendary > result.supplyLegendaryMoney.legendary) {
             result.supplyLegendaryMoney.supply = supply;
             result.supplyLegendaryMoney.legendary = legendary;
             result.supplyLegendaryMoney.money = addition.online;
