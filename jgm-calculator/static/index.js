@@ -14215,16 +14215,16 @@ function getIncome(level) {
   return levelData[level].income;
 }
 
-function getCost(levle, rarity) {
+function getCost(level, rarity) {
   switch (rarity) {
     case _Building__WEBPACK_IMPORTED_MODULE_0__["BuildingRarity"].Common:
-      return levelData[levle].commonCost;
+      return levelData[level].commonCost;
 
     case _Building__WEBPACK_IMPORTED_MODULE_0__["BuildingRarity"].Rare:
-      return levelData[levle].rareCost;
+      return levelData[level].rareCost;
 
     case _Building__WEBPACK_IMPORTED_MODULE_0__["BuildingRarity"].Legendary:
-      return levelData[levle].legendaryCost;
+      return levelData[level].legendaryCost;
   }
 
   return 0;
@@ -14314,7 +14314,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 
 var storage_key = "lintx-jgm-calculator-config";
 var worker = undefined;
-var version = "0.5";
+var version = "0.6";
 var app = new Vue({
   el: "#app",
   data: function data() {
@@ -14330,6 +14330,7 @@ var app = new Vue({
     var data = {
       version: version,
       rarity: _Building__WEBPACK_IMPORTED_MODULE_0__["BuildingRarity"],
+      supplyStep50: false,
       buildings: [{
         type: _Building__WEBPACK_IMPORTED_MODULE_0__["BuildingType"].Residence,
         list: [new _Builds_Chalet__WEBPACK_IMPORTED_MODULE_1__["default"](), new _Builds_SteelStructureHouse__WEBPACK_IMPORTED_MODULE_2__["default"](), new _Builds_Bungalow__WEBPACK_IMPORTED_MODULE_3__["default"](), new _Builds_SmallApartment__WEBPACK_IMPORTED_MODULE_4__["default"](), new _Builds_Residential__WEBPACK_IMPORTED_MODULE_5__["default"](), new _Builds_TalentApartment__WEBPACK_IMPORTED_MODULE_6__["default"](), new _Builds_GardenHouse__WEBPACK_IMPORTED_MODULE_7__["default"](), new _Builds_ChineseSmallBuilding__WEBPACK_IMPORTED_MODULE_8__["default"](), new _Builds_SkyVilla__WEBPACK_IMPORTED_MODULE_9__["default"](), new _Builds_RevivalMansion__WEBPACK_IMPORTED_MODULE_10__["default"]()]
@@ -14343,7 +14344,7 @@ var app = new Vue({
       buffs: [],
       programs: [],
       progress: 0,
-      calculationing: false
+      calculationIng: false
     };
     Object.keys(_Buff__WEBPACK_IMPORTED_MODULE_32__["BuffSource"]).forEach(function (key) {
       var source = _Buff__WEBPACK_IMPORTED_MODULE_32__["BuffSource"][key];
@@ -14418,7 +14419,7 @@ var app = new Vue({
   },
   methods: {
     calculation: function calculation() {
-      this.calculationing = true; //拿出已有的建筑
+      this.calculationIng = true; //拿出已有的建筑
 
       var list = [];
       this.buildings.forEach(function (cls) {
@@ -14448,7 +14449,7 @@ var app = new Vue({
           var data = e.data;
 
           if (data === "done") {
-            _self.calculationing = false;
+            _self.calculationIng = false;
             worker.terminate();
             worker = undefined;
           } else {
@@ -14464,7 +14465,10 @@ var app = new Vue({
 
         worker.postMessage({
           list: list,
-          buff: this.buffs
+          buff: this.buffs,
+          config: {
+            supplyStep50: this.supplyStep50
+          }
         });
       } else {//抱歉! Web Worker 不支持
       }
@@ -14510,7 +14514,7 @@ var app = new Vue({
       try {
         worker.terminate();
         worker = undefined;
-        this.calculationing = false;
+        this.calculationIng = false;
       } catch (e) {}
     }
   }
