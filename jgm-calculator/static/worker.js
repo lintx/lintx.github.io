@@ -130,7 +130,9 @@ var BuffSource = {
   Building: "建筑加成",
   Policy: "政策加成",
   Photo: "游记加成",
-  Quest: "任务加成"
+  Quest: "任务加成",
+  Activity: "活动加成(如国庆buff)",
+  ShineChina: "家国之光"
 };
 
 var Buffs =
@@ -155,6 +157,8 @@ function () {
 
       switch (source) {
         case BuffSource.Policy:
+        case BuffSource.Activity:
+        case BuffSource.ShineChina:
           this.Policy.push(b);
           break;
 
@@ -14417,6 +14421,35 @@ function calculation(list, buff, config) {
             buffs.add(source.type, new _Buff__WEBPACK_IMPORTED_MODULE_0__["Buff"](buff.range, buff.target, buff.buff));
           });
         });
+
+        if (config.policy.stage1) {
+          buffs.add(_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Policy, new _Buff__WEBPACK_IMPORTED_MODULE_0__["Buff"](_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Global, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Global, 100)); //一带一路建设
+
+          buffs.add(_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Policy, new _Buff__WEBPACK_IMPORTED_MODULE_0__["Buff"](_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Business, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Business, 300)); //自由贸易区建设
+
+          buffs.add(_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Policy, new _Buff__WEBPACK_IMPORTED_MODULE_0__["Buff"](_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Residence, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Residence, 300)); //区域协调发展
+        }
+
+        if (config.policy.stage2) {
+          buffs.add(_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Policy, new _Buff__WEBPACK_IMPORTED_MODULE_0__["Buff"](_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Global, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Global, 200)); //全面深化改革
+
+          buffs.add(_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Policy, new _Buff__WEBPACK_IMPORTED_MODULE_0__["Buff"](_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online, 200)); //全面依法治国
+
+          buffs.add(_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Policy, new _Buff__WEBPACK_IMPORTED_MODULE_0__["Buff"](_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline, 200)); //科教兴国
+
+          buffs.add(_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Policy, new _Buff__WEBPACK_IMPORTED_MODULE_0__["Buff"](_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Industrial, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Industrial, 600)); //创新驱动
+        }
+
+        if (config.policy.stage3) {
+          buffs.add(_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Policy, new _Buff__WEBPACK_IMPORTED_MODULE_0__["Buff"](_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Industrial, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Industrial, 1200)); //制造强国
+
+          buffs.add(_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Policy, new _Buff__WEBPACK_IMPORTED_MODULE_0__["Buff"](_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Supply, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Supply, 30)); //优化营商环境
+
+          buffs.add(_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Policy, new _Buff__WEBPACK_IMPORTED_MODULE_0__["Buff"](_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Global, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Global, 400)); //减税降费
+
+          buffs.add(_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Policy, new _Buff__WEBPACK_IMPORTED_MODULE_0__["Buff"](_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Business, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Business, 1200)); //普惠金融
+        }
+
         var legendary = 0;
         var rare = 0;
         temp.forEach(function (t) {
@@ -14557,7 +14590,10 @@ function calculation(list, buff, config) {
       //1.先计算每个建筑升1级的金币-收益比
       //2.然后取出最优解和次优解，再计算最优解升级到多少级后变为次优解
       if (building.building.level < 2000) {
+        var level = building.building.level;
         var benefitObj = upgradeBenefit(building.online, building.building, program.buffs);
+        building.building.level = level; //及时把建筑的等级恢复原样
+
         var benefit = benefitObj.benefit;
 
         if (benefit > upgrade.best.upgradeBenefit) {
@@ -14566,31 +14602,37 @@ function calculation(list, buff, config) {
           upgrade.minor.online = upgrade.best.online;
           upgrade.best.upgradeBenefit = benefit;
           upgrade.best.building = building;
-          upgrade.best.online = benefitObj.online;
+          upgrade.best.online = building.online;
         } else if (benefit > upgrade.minor.upgradeBenefit) {
           upgrade.minor.upgradeBenefit = benefit;
           upgrade.minor.building = building;
-          upgrade.best.online = benefitObj.online;
+          upgrade.minor.online = building.online;
         }
       }
 
       building.online = renderSize(building.online);
       building.offline = renderSize(building.offline);
-    });
+    }); // console.log("最优建筑：" + upgrade.best.building.building.BuildingName + ",等级：" + upgrade.best.building.building.level + ",效益：" + upgrade.best.upgradeBenefit + ",次优建筑:" + upgrade.minor.building.building.BuildingName + ",效益：" + upgrade.minor.upgradeBenefit);
 
     if (upgrade.best.building !== null && upgrade.best.building.building.level < 2000) {
+      var level = upgrade.best.building.building.level;
+
       while (true) {
-        var benefitObj = upgradeBenefit(upgrade.best.online, upgrade.best.building.building, program.buffs);
+        var benefitObj = upgradeBenefit(upgrade.best.online, upgrade.best.building.building, program.buffs); // console.log("模拟升级：" + upgrade.best.building.building.BuildingName + ",目标等级：" + upgrade.best.building.building.level + ",效益：" + benefitObj.benefit);
+
         upgrade.best.online = benefitObj.online;
 
         if (benefitObj.benefit < upgrade.minor.upgradeBenefit) {
           program.addition.upgrade = {
             building: upgrade.best.building.building,
-            toLevel: upgrade.best.building.building.level - 1
+            toLevel: upgrade.best.building.building.level - 1,
+            nextBuilding: upgrade.minor.building.building
           };
           break;
         }
       }
+
+      upgrade.best.building.building.level = level;
     }
   });
   postMessage({
@@ -14647,7 +14689,7 @@ function renderSize(value) {
     return "0";
   }
 
-  var unitArr = ["", "K", "M", "B", "T", "aa", "bb", "cc", "dd", "ee", "ff", "gg"];
+  var unitArr = ["", "K", "M", "B", "T", "aa", "bb", "cc", "dd", "ee", "ff", "gg", "hh", "ii", "jj", "kk", "ll", "mm", "nn", "oo", "pp", "qq", "rr", "ss", "tt", "uu", "vv", "ww", "xx", "yy", "zz"];
   var index = 0,
       srcsize = parseFloat(value);
   index = Math.floor(Math.log(srcsize) / Math.log(1000));
@@ -14661,7 +14703,13 @@ function renderSize(value) {
     size = size.toFixed(2);
   }
 
-  return size + unitArr[index];
+  var unit = unitArr[index];
+
+  if (unit === undefined) {
+    unit = "E" + index * 3;
+  }
+
+  return size + unit;
 }
 
 function getFlagArrs(m, n) {

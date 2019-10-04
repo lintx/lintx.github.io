@@ -210,7 +210,9 @@ var BuffSource = {
   Building: "建筑加成",
   Policy: "政策加成",
   Photo: "游记加成",
-  Quest: "任务加成"
+  Quest: "任务加成",
+  Activity: "活动加成(如国庆buff)",
+  ShineChina: "家国之光"
 };
 
 var Buffs =
@@ -235,6 +237,8 @@ function () {
 
       switch (source) {
         case BuffSource.Policy:
+        case BuffSource.Activity:
+        case BuffSource.ShineChina:
           this.Policy.push(b);
           break;
 
@@ -14404,7 +14408,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 
 var storage_key = "lintx-jgm-calculator-config";
 var worker = undefined;
-var version = "0.7";
+var version = "0.8";
 vue__WEBPACK_IMPORTED_MODULE_0__["default"].use(bootstrap_vue__WEBPACK_IMPORTED_MODULE_33__["default"]);
 vue__WEBPACK_IMPORTED_MODULE_0__["default"].use(portal_vue__WEBPACK_IMPORTED_MODULE_34___default.a);
 var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
@@ -14424,7 +14428,12 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
       rarity: _Building__WEBPACK_IMPORTED_MODULE_1__["BuildingRarity"],
       config: {
         supplyStep50: false,
-        allBuildingLevel1: false
+        allBuildingLevel1: false,
+        policy: {
+          stage1: false,
+          stage2: false,
+          stage3: false
+        }
       },
       buildings: [{
         type: _Building__WEBPACK_IMPORTED_MODULE_1__["BuildingType"].Residence,
@@ -14508,6 +14517,10 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
           });
         } catch (e) {}
       }
+
+      if (config.hasOwnProperty("config")) {
+        Object.assign(data.config, config.config);
+      }
     }
 
     return data;
@@ -14547,6 +14560,7 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
             _self.calculationIng = false;
             worker.terminate();
             worker = undefined;
+            _self.progress = 0;
           } else {
             var mode = data.mode;
 
@@ -14569,7 +14583,8 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
     save: function save() {
       var config = {
         building: [],
-        buff: []
+        buff: [],
+        config: this.config
       };
       this.buildings.forEach(function (cls) {
         cls.list.forEach(function (item) {
@@ -14638,6 +14653,32 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
         worker = undefined;
         this.calculationIng = false;
       } catch (e) {}
+    },
+    levelKeyDown: function levelKeyDown(e, item) {
+      if (e.code === "ArrowUp") {
+        if (e.shiftKey) {
+          item.level += 100;
+        } else if (e.ctrlKey) {
+          item.level += 10;
+        } else {
+          item.level += 1;
+        }
+      } else if (e.code === "ArrowDown") {
+        if (e.shiftKey) {
+          item.level -= 100;
+        } else if (e.ctrlKey) {
+          item.level -= 10;
+        } else {
+          item.level -= 1;
+        }
+      } else if (e.code === "PageUp") {
+        item.level += 1000;
+      } else if (e.code === "PageDown") {
+        item.level -= 1000;
+      }
+
+      item.level = Math.min(2000, item.level);
+      item.level = Math.max(1, item.level);
     },
     "export": function _export() {
       var h = this.$createElement;
