@@ -350,6 +350,24 @@ function () {
       return buff.buff * this.star;
     }
   }, {
+    key: "tooltip",
+    get: function get() {
+      var _this2 = this;
+
+      if (this.star === 0) {
+        return "";
+      }
+
+      var tooltip = [];
+      tooltip.push(this.BuildingName);
+      tooltip.push(Array(this.star + 1).join("★"));
+      tooltip.push("等级 " + this.level);
+      this.buffs.forEach(function (buff) {
+        tooltip.push(buff.target + "的收入增加 " + Math.round(_this2.getBuffValue(buff) * 100) + "%");
+      });
+      return tooltip.join("<br />");
+    }
+  }, {
     key: "money",
     get: function get() {
       return this.baseMoney * this.multiple * Object(_Level__WEBPACK_IMPORTED_MODULE_1__["getIncome"])(this.level); //这里需要按等级计算，这是基础金钱收益
@@ -14384,6 +14402,7 @@ function calculation(list, buff, config) {
       supply: 0,
       legendary: 0,
       rare: 0,
+      money: 0,
       addition: {},
       buffs: null
     },
@@ -14510,12 +14529,22 @@ function calculation(list, buff, config) {
 
         if (supply === result.supplyRarity.supply) {
           if (legendary === result.supplyRarity.legendary) {
-            if (rare > result.supplyRarity.rare) {
+            if (rare === result.supplyRarity.rare) {
+              if (addition.online > result.supplyRarity.money) {
+                result.supplyRarity.supply = supply;
+                result.supplyRarity.legendary = legendary;
+                result.supplyRarity.rare = rare;
+                result.supplyRarity.addition = addition;
+                result.supplyRarity.buffs = buffs;
+                result.supplyRarity.money = addition.online;
+              }
+            } else if (rare > result.supplyRarity.rare) {
               result.supplyRarity.supply = supply;
               result.supplyRarity.legendary = legendary;
               result.supplyRarity.rare = rare;
               result.supplyRarity.addition = addition;
               result.supplyRarity.buffs = buffs;
+              result.supplyRarity.money = addition.online;
             }
           } else if (legendary > result.supplyRarity.legendary) {
             result.supplyRarity.supply = supply;
@@ -14523,6 +14552,7 @@ function calculation(list, buff, config) {
             result.supplyRarity.rare = rare;
             result.supplyRarity.addition = addition;
             result.supplyRarity.buffs = buffs;
+            result.supplyRarity.money = addition.online;
           }
         } else if (supply > result.supplyRarity.supply) {
           result.supplyRarity.supply = supply;
@@ -14530,6 +14560,7 @@ function calculation(list, buff, config) {
           result.supplyRarity.rare = rare;
           result.supplyRarity.addition = addition;
           result.supplyRarity.buffs = buffs;
+          result.supplyRarity.money = addition.online;
         }
 
         if (supply === result.supplyLegendaryMoney.supply) {

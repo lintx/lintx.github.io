@@ -430,6 +430,24 @@ function () {
       return buff.buff * this.star;
     }
   }, {
+    key: "tooltip",
+    get: function get() {
+      var _this2 = this;
+
+      if (this.star === 0) {
+        return "";
+      }
+
+      var tooltip = [];
+      tooltip.push(this.BuildingName);
+      tooltip.push(Array(this.star + 1).join("★"));
+      tooltip.push("等级 " + this.level);
+      this.buffs.forEach(function (buff) {
+        tooltip.push(buff.target + "的收入增加 " + Math.round(_this2.getBuffValue(buff) * 100) + "%");
+      });
+      return tooltip.join("<br />");
+    }
+  }, {
     key: "money",
     get: function get() {
       return this.baseMoney * this.multiple * Object(_Level__WEBPACK_IMPORTED_MODULE_1__["getIncome"])(this.level); //这里需要按等级计算，这是基础金钱收益
@@ -14408,7 +14426,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 
 var storage_key = "lintx-jgm-calculator-config";
 var worker = undefined;
-var version = "0.9";
+var version = "0.10";
 vue__WEBPACK_IMPORTED_MODULE_0__["default"].use(bootstrap_vue__WEBPACK_IMPORTED_MODULE_33__["default"]);
 vue__WEBPACK_IMPORTED_MODULE_0__["default"].use(portal_vue__WEBPACK_IMPORTED_MODULE_34___default.a);
 var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
@@ -14566,6 +14584,31 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
 
             if (mode === "result") {
               _self.programs = data.result;
+
+              _self.programs.forEach(function (program) {
+                program.addition.buildings.forEach(function (pb) {
+                  _self.buildings.forEach(function (building) {
+                    building.list.forEach(function (item) {
+                      if (pb.building.BuildingName === item.BuildingName) {
+                        pb.building = item;
+                        return true;
+                      }
+                    });
+                  });
+                });
+
+                _self.buildings.forEach(function (building) {
+                  building.list.forEach(function (item) {
+                    if (program.addition.upgrade.building.BuildingName === item.BuildingName) {
+                      program.addition.upgrade.building = item;
+                    }
+
+                    if (program.addition.upgrade.nextBuilding.BuildingName === item.BuildingName) {
+                      program.addition.upgrade.nextBuilding = item;
+                    }
+                  });
+                });
+              });
             } else if (mode === "progress") {
               _self.progress = data.progress;
             }
