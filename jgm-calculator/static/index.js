@@ -14408,7 +14408,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 
 var storage_key = "lintx-jgm-calculator-config";
 var worker = undefined;
-var version = "0.8";
+var version = "0.9";
 vue__WEBPACK_IMPORTED_MODULE_0__["default"].use(bootstrap_vue__WEBPACK_IMPORTED_MODULE_33__["default"]);
 vue__WEBPACK_IMPORTED_MODULE_0__["default"].use(portal_vue__WEBPACK_IMPORTED_MODULE_34___default.a);
 var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
@@ -14675,8 +14675,11 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
         item.level += 1000;
       } else if (e.code === "PageDown") {
         item.level -= 1000;
+      } else {
+        return;
       }
 
+      e.preventDefault();
       item.level = Math.min(2000, item.level);
       item.level = Math.max(1, item.level);
     },
