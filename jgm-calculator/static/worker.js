@@ -14647,6 +14647,12 @@ function calculation(list, policy, buff, config) {
         });
       }
 
+      if (level === 0) {
+        return;
+      } // let b = p.buff(level)
+      // console.log("政策：" + p.title + ",buff:" + b.target + ",加成：" + b.buff);
+
+
       globalBuffs.add(_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Policy, p.buff(level));
     });
   };
@@ -14675,7 +14681,8 @@ function calculation(list, policy, buff, config) {
         buffs.Photo = globalBuffs.Photo; //任务加成因为可能会添加特定建筑的加成，所以不能直接引用
 
         globalBuffs.Quest.forEach(function (b) {
-          buffs.add(_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Quest, b);
+          // buffs.add(BuffSource.Quest,b);
+          buffs.Quest.push(b);
         });
         var legendary = 0;
         var rare = 0;
