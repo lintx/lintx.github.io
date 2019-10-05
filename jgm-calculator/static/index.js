@@ -211,8 +211,9 @@ var BuffSource = {
   Policy: "政策加成",
   Photo: "游记加成",
   Quest: "任务加成",
-  Activity: "活动加成(如国庆buff)",
-  ShineChina: "家国之光"
+  Activity: "活动加成(如国庆buff)" //,
+  // ShineChina:"家国之光"
+
 };
 
 var Buffs =
@@ -238,7 +239,7 @@ function () {
       switch (source) {
         case BuffSource.Policy:
         case BuffSource.Activity:
-        case BuffSource.ShineChina:
+          // case BuffSource.ShineChina:
           this.Policy.push(b);
           break;
 
@@ -380,11 +381,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "BuildingType", function() { return BuildingType; });
 /* harmony import */ var _Buff__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Buff */ "./src/js/Buff.js");
 /* harmony import */ var _Level__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Level */ "./src/js/Level.js");
+/* harmony import */ var _Utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Utils */ "./src/js/Utils.js");
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
 
 
 
@@ -445,6 +448,7 @@ function () {
       this.buffs.forEach(function (buff) {
         tooltip.push(buff.target + "的收入增加 " + Math.round(_this2.getBuffValue(buff) * 100) + "%");
       });
+      tooltip.push("基础收益：" + this.baseMoney + "*" + this.multiple + "*" + Object(_Utils__WEBPACK_IMPORTED_MODULE_2__["renderSize"])(Object(_Level__WEBPACK_IMPORTED_MODULE_1__["getIncome"])(this.level)) + "=" + Object(_Utils__WEBPACK_IMPORTED_MODULE_2__["renderSize"])(this.money));
       return tooltip.join("<br />");
     }
   }, {
@@ -14336,6 +14340,201 @@ function getCost(level, rarity) {
 
 /***/ }),
 
+/***/ "./src/js/Policy.js":
+/*!**************************!*\
+  !*** ./src/js/Policy.js ***!
+  \**************************/
+/*! exports provided: policys, getPolicy */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "policys", function() { return policys; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getPolicy", function() { return getPolicy; });
+/* harmony import */ var _Buff__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Buff */ "./src/js/Buff.js");
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+
+
+var PolicyStep =
+/*#__PURE__*/
+function () {
+  function PolicyStep(step, policys) {
+    _classCallCheck(this, PolicyStep);
+
+    this.step = step;
+    this.policys = policys;
+  }
+
+  _createClass(PolicyStep, [{
+    key: "policy",
+    value: function policy(title) {
+      var policy = new Policy("error", []);
+      this.policys.forEach(function (p) {
+        if (p.title === title) {
+          policy = p;
+          return true;
+        }
+      });
+      return policy;
+    }
+  }]);
+
+  return PolicyStep;
+}();
+
+var Policy =
+/*#__PURE__*/
+function () {
+  function Policy(title, policyLevels) {
+    _classCallCheck(this, Policy);
+
+    this.title = title;
+    this.policyLevels = policyLevels;
+  }
+
+  _createClass(Policy, [{
+    key: "buff",
+    value: function buff(level) {
+      var buff = new _Buff__WEBPACK_IMPORTED_MODULE_0__["Buff"](_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Global, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Global, 0);
+      this.policyLevels.forEach(function (policyLevel) {
+        if (policyLevel.level === level) {
+          buff = policyLevel.buff;
+          return true;
+        }
+      });
+      return buff;
+    }
+  }]);
+
+  return Policy;
+}();
+
+var PolicyLevel = function PolicyLevel(level, buff) {
+  _classCallCheck(this, PolicyLevel);
+
+  this.level = level;
+  this.buff = buff;
+};
+
+function getPolicyLevelBuffs(title, buffRange, buff1, buff2, buff3, buff4, buff5) {
+  return new Policy(title, [new PolicyLevel(1, new _Buff__WEBPACK_IMPORTED_MODULE_0__["Buff"](buffRange, buffRange, buff1)), new PolicyLevel(2, new _Buff__WEBPACK_IMPORTED_MODULE_0__["Buff"](buffRange, buffRange, buff2)), new PolicyLevel(3, new _Buff__WEBPACK_IMPORTED_MODULE_0__["Buff"](buffRange, buffRange, buff3)), new PolicyLevel(4, new _Buff__WEBPACK_IMPORTED_MODULE_0__["Buff"](buffRange, buffRange, buff4)), new PolicyLevel(5, new _Buff__WEBPACK_IMPORTED_MODULE_0__["Buff"](buffRange, buffRange, buff5))]);
+}
+
+var policys = [new PolicyStep(1, [getPolicyLevelBuffs("一带一路建设", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Global, 10, 25, 50, 75, 100), getPolicyLevelBuffs("自由贸易区建设", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Business, 30, 75, 150, 225, 300), getPolicyLevelBuffs("区域协调发展", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Residence, 30, 75, 150, 225, 300)]), new PolicyStep(2, [getPolicyLevelBuffs("全面深化改革", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Global, 20, 50, 100, 150, 200), getPolicyLevelBuffs("全面依法治国", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online, 20, 50, 100, 150, 200), getPolicyLevelBuffs("科教兴国", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline, 20, 50, 100, 150, 200), getPolicyLevelBuffs("创新驱动", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Industrial, 60, 150, 300, 450, 600)]), new PolicyStep(3, [getPolicyLevelBuffs("制造强国", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Industrial, 120, 300, 600, 900, 1200), getPolicyLevelBuffs("优化营商环境", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Supply, 10, 15, 20, 25, 30), getPolicyLevelBuffs("减税降费", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Global, 40, 100, 200, 300, 400), getPolicyLevelBuffs("普惠金融", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Business, 120, 300, 600, 900, 1200)]), new PolicyStep(4, [getPolicyLevelBuffs("新型城镇化", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Residence, 240, 600, 1200, 1800, 2400), getPolicyLevelBuffs("乡村振兴", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online, 80, 200, 400, 600, 800), getPolicyLevelBuffs("精准扶贫", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline, 80, 200, 400, 600, 800), getPolicyLevelBuffs("新一代人工智能", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Global, 80, 200, 400, 600, 800)]), new PolicyStep(5, [getPolicyLevelBuffs("蓝天保卫战", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Industrial, 360, 900, 1800, 2700, 3600), getPolicyLevelBuffs("拍蝇打虎猎狐", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline, 120, 300, 600, 900, 1200), getPolicyLevelBuffs("扫黑除恶", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Residence, 360, 900, 1800, 2700, 3600), getPolicyLevelBuffs("平安中国", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Business, 360, 900, 1800, 2700, 3600), getPolicyLevelBuffs("美丽中国", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Global, 120, 300, 600, 900, 1200)]), new PolicyStep(6, [getPolicyLevelBuffs("互联网+", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Business, 750, 1875, 3750, 5625, 7500), getPolicyLevelBuffs("健康中国", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online, 250, 625, 1250, 1875, 2500), getPolicyLevelBuffs("河长制", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Industrial, 750, 1875, 3750, 5625, 7500), getPolicyLevelBuffs("厕所革命", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Residence, 750, 1875, 3750, 5625, 7500), getPolicyLevelBuffs("社会主义核心价值观", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Global, 250, 625, 1250, 1875, 2500)]), new PolicyStep(7, [getPolicyLevelBuffs("双一流建设", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online, 750, 1875, 3750, 5625, 7500), getPolicyLevelBuffs("体育强国", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Supply, 10, 15, 20, 25, 30), getPolicyLevelBuffs("民族团结", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Global, 750, 1875, 3750, 5625, 7500), getPolicyLevelBuffs("节约资源", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Industrial, 2250, 5625, 11250, 16875, 22500), getPolicyLevelBuffs("强军兴军", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline, 750, 1875, 3750, 5625, 7500)]), new PolicyStep(8, [getPolicyLevelBuffs("个税改革", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Global, 1000, 2500, 5000, 7500, 10000), getPolicyLevelBuffs("大众创业万众创新", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Industrial, 3000, 7500, 15000, 22500, 30000), getPolicyLevelBuffs("产权保护", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Business, 3000, 7500, 15000, 22500, 30000), getPolicyLevelBuffs("户籍制度改革", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Residence, 3000, 7500, 15000, 22500, 30000), getPolicyLevelBuffs("文化惠民", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline, 1000, 2500, 5000, 7500, 10000)]), new PolicyStep(9, [getPolicyLevelBuffs("棚户区改造", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Residence, 9000, 22500, 45000, 67500, 90000), getPolicyLevelBuffs("租购并举", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Residence, 9000, 22500, 45000, 67500, 90000), getPolicyLevelBuffs("垃圾分类", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Supply, 10, 15, 20, 25, 30), getPolicyLevelBuffs("医保异地结算", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline, 3000, 7500, 15000, 22500, 30000), getPolicyLevelBuffs("大病保险", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline, 3000, 7500, 15000, 22500, 30000)]), new PolicyStep(10, [getPolicyLevelBuffs("全面二孩", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Global, 6000, 15000, 30000, 45000, 60000), getPolicyLevelBuffs("幼有所育", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online, 6000, 15000, 30000, 45000, 60000), getPolicyLevelBuffs("老有所养", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline, 6000, 15000, 30000, 45000, 60000), getPolicyLevelBuffs("失信联合惩戒", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Business, 18000, 45000, 90000, 135000, 180000), getPolicyLevelBuffs("全民健身", _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Global, 6000, 15000, 30000, 45000, 60000)])];
+
+function getPolicy(step) {
+  var policy = policys[0];
+  policys.forEach(function (policyStep) {
+    if (policyStep.step === step) {
+      policy = policyStep;
+      return true;
+    }
+  });
+  return policy;
+}
+
+
+
+/***/ }),
+
+/***/ "./src/js/Utils.js":
+/*!*************************!*\
+  !*** ./src/js/Utils.js ***!
+  \*************************/
+/*! exports provided: renderSize, getFlagArrs */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "renderSize", function() { return renderSize; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getFlagArrs", function() { return getFlagArrs; });
+function renderSize(value) {
+  if (null === value || value === '') {
+    return "0";
+  }
+
+  var unitArr = ["", "K", "M", "B", "T", "aa", "bb", "cc", "dd", "ee", "ff", "gg", "hh", "ii", "jj", "kk", "ll", "mm", "nn", "oo", "pp", "qq", "rr", "ss", "tt", "uu", "vv", "ww", "xx", "yy", "zz"];
+  var index = 0,
+      srcsize = parseFloat(value);
+  index = Math.floor(Math.log(srcsize) / Math.log(1000));
+  var size = srcsize / Math.pow(1000, index); //  保留的小数位数
+
+  if (size >= 100) {
+    size = Math.round(size);
+  } else if (size >= 10) {
+    size = size.toFixed(1);
+  } else {
+    size = size.toFixed(2);
+  }
+
+  var unit = unitArr[index];
+
+  if (unit === undefined) {
+    unit = "E" + index * 3;
+  }
+
+  return size + unit;
+}
+
+function getFlagArrs(m, n) {
+  if (!n || n < 1) {
+    return [];
+  }
+
+  var resultArrs = [],
+      flagArr = [],
+      isEnd = false,
+      i,
+      j,
+      leftCnt;
+
+  for (i = 0; i < m; i++) {
+    flagArr[i] = i < n ? 1 : 0;
+  }
+
+  resultArrs.push(flagArr.concat());
+
+  if (m <= n) {
+    return resultArrs;
+  }
+
+  while (!isEnd) {
+    leftCnt = 0;
+
+    for (i = 0; i < m - 1; i++) {
+      if (flagArr[i] === 1 && flagArr[i + 1] === 0) {
+        for (j = 0; j < i; j++) {
+          flagArr[j] = j < leftCnt ? 1 : 0;
+        }
+
+        flagArr[i] = 0;
+        flagArr[i + 1] = 1;
+        var aTmp = flagArr.concat();
+        resultArrs.push(aTmp);
+
+        if (aTmp.slice(-n).join("").indexOf('0') === -1) {
+          isEnd = true;
+        }
+
+        break;
+      }
+
+      flagArr[i] === 1 && leftCnt++;
+    }
+  }
+
+  return resultArrs;
+}
+
+
+
+/***/ }),
+
 /***/ "./src/js/index.js":
 /*!*************************!*\
   !*** ./src/js/index.js ***!
@@ -14385,7 +14584,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var bootstrap_vue_dist_bootstrap_vue_css__WEBPACK_IMPORTED_MODULE_35___default = /*#__PURE__*/__webpack_require__.n(bootstrap_vue_dist_bootstrap_vue_css__WEBPACK_IMPORTED_MODULE_35__);
 /* harmony import */ var _css_index_scss__WEBPACK_IMPORTED_MODULE_36__ = __webpack_require__(/*! ../css/index.scss */ "./src/css/index.scss");
 /* harmony import */ var _css_index_scss__WEBPACK_IMPORTED_MODULE_36___default = /*#__PURE__*/__webpack_require__.n(_css_index_scss__WEBPACK_IMPORTED_MODULE_36__);
+/* harmony import */ var _Policy__WEBPACK_IMPORTED_MODULE_37__ = __webpack_require__(/*! ./Policy */ "./src/js/Policy.js");
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
 
 
 
@@ -14426,33 +14635,26 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 
 var storage_key = "lintx-jgm-calculator-config";
 var worker = undefined;
-var version = "0.10";
+var version = "0.11";
 vue__WEBPACK_IMPORTED_MODULE_0__["default"].use(bootstrap_vue__WEBPACK_IMPORTED_MODULE_33__["default"]);
 vue__WEBPACK_IMPORTED_MODULE_0__["default"].use(portal_vue__WEBPACK_IMPORTED_MODULE_34___default.a);
 var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
   el: "#app",
   data: function data() {
-    var config = null;
-    var storage = localStorage.getItem(storage_key);
-
-    if (storage !== null) {
-      try {
-        config = JSON.parse(storage);
-      } catch (e) {}
-    }
-
     var data = {
       version: version,
       rarity: _Building__WEBPACK_IMPORTED_MODULE_1__["BuildingRarity"],
       config: {
         supplyStep50: false,
         allBuildingLevel1: false,
-        policy: {
-          stage1: false,
-          stage2: false,
-          stage3: false
-        }
+        shineChinaBuff: 0,
+        showBuffConfig: true,
+        showBuildingConfig: true,
+        showOtherConfig: true,
+        configName: ""
       },
+      selectConfigIndex: 0,
+      localConfigList: [],
       buildings: [{
         type: _Building__WEBPACK_IMPORTED_MODULE_1__["BuildingType"].Residence,
         list: [new _Builds_Chalet__WEBPACK_IMPORTED_MODULE_2__["default"](), new _Builds_SteelStructureHouse__WEBPACK_IMPORTED_MODULE_3__["default"](), new _Builds_Bungalow__WEBPACK_IMPORTED_MODULE_4__["default"](), new _Builds_SmallApartment__WEBPACK_IMPORTED_MODULE_5__["default"](), new _Builds_Residential__WEBPACK_IMPORTED_MODULE_6__["default"](), new _Builds_TalentApartment__WEBPACK_IMPORTED_MODULE_7__["default"](), new _Builds_GardenHouse__WEBPACK_IMPORTED_MODULE_8__["default"](), new _Builds_ChineseSmallBuilding__WEBPACK_IMPORTED_MODULE_9__["default"](), new _Builds_SkyVilla__WEBPACK_IMPORTED_MODULE_10__["default"](), new _Builds_RevivalMansion__WEBPACK_IMPORTED_MODULE_11__["default"]()]
@@ -14464,6 +14666,10 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
         list: [new _Builds_WoodFactory__WEBPACK_IMPORTED_MODULE_22__["default"](), new _Builds_PaperMill__WEBPACK_IMPORTED_MODULE_23__["default"](), new _Builds_WaterPlant__WEBPACK_IMPORTED_MODULE_24__["default"](), new _Builds_PowerPlant__WEBPACK_IMPORTED_MODULE_25__["default"](), new _Builds_FoodFactory__WEBPACK_IMPORTED_MODULE_26__["default"](), new _Builds_SteelPlant__WEBPACK_IMPORTED_MODULE_27__["default"](), new _Builds_TextileMill__WEBPACK_IMPORTED_MODULE_28__["default"](), new _Builds_PartsFactory__WEBPACK_IMPORTED_MODULE_29__["default"](), new _Builds_TencentMachinery__WEBPACK_IMPORTED_MODULE_30__["default"](), new _Builds_PeoplesOil__WEBPACK_IMPORTED_MODULE_31__["default"]()]
       }],
       buffs: [],
+      policy: {
+        step: 1,
+        levels: []
+      },
       programs: [],
       progress: 0,
       calculationIng: false
@@ -14471,7 +14677,7 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
     Object.keys(_Buff__WEBPACK_IMPORTED_MODULE_32__["BuffSource"]).forEach(function (key) {
       var source = _Buff__WEBPACK_IMPORTED_MODULE_32__["BuffSource"][key];
 
-      if (source === _Buff__WEBPACK_IMPORTED_MODULE_32__["BuffSource"].Building) {
+      if (source === _Buff__WEBPACK_IMPORTED_MODULE_32__["BuffSource"].Building || source === _Buff__WEBPACK_IMPORTED_MODULE_32__["BuffSource"].Policy) {
         return;
       }
 
@@ -14495,6 +14701,24 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
         item.initBuffs();
       });
     });
+    var localConfig = this.localConfig();
+    var config = null;
+
+    if (localConfig !== null && _typeof(localConfig) === "object" && localConfig.hasOwnProperty("current") && typeof localConfig.current === "number") {
+      config = localConfig.config[localConfig.current] || null;
+      data.selectConfigIndex = localConfig.current;
+      localConfig.config.forEach(function (c, i) {
+        var name = "配置" + (i + 1);
+
+        if (c.hasOwnProperty("config") && c.config.hasOwnProperty("configName") && c.config.configName !== "") {
+          name += "(" + c.config.configName + ")";
+        }
+
+        data.localConfigList.push(name);
+      });
+    } else {
+      config = localConfig;
+    }
 
     if (config !== null && _typeof(config) === "object") {
       if (config.hasOwnProperty("building")) {
@@ -14539,9 +14763,34 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
       if (config.hasOwnProperty("config")) {
         Object.assign(data.config, config.config);
       }
+
+      if (config.hasOwnProperty("policy")) {
+        Object.assign(data.policy, config.policy);
+      }
+    }
+
+    if (!data.policy.levels || data.policy.levels.length <= 0) {
+      data.policy.levels = getPolicyLevelData(data.policy.step);
     }
 
     return data;
+  },
+  watch: {
+    "policy.step": function policyStep(val, oldVal) {
+      var _this = this;
+
+      if (val !== oldVal) {
+        var temp = getPolicyLevelData(val);
+        temp.forEach(function (l) {
+          _this.policy.levels.forEach(function (pl) {
+            if (l.title === pl.title) {
+              l.level = pl.level;
+            }
+          });
+        });
+        this.policy.levels = temp;
+      }
+    }
   },
   methods: {
     calculation: function calculation() {
@@ -14618,16 +14867,18 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
         worker.postMessage({
           list: list,
           buff: this.buffs,
-          config: this.config
+          config: this.config,
+          policy: this.policy
         });
       } else {//抱歉! Web Worker 不支持
       }
     },
-    save: function save() {
+    getConfig: function getConfig() {
       var config = {
         building: [],
         buff: [],
-        config: this.config
+        config: this.config,
+        policy: this.policy
       };
       this.buildings.forEach(function (cls) {
         cls.list.forEach(function (item) {
@@ -14655,7 +14906,34 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
         });
         config.buff.push(b);
       });
-      localStorage.setItem(storage_key, JSON.stringify(config));
+      var localConfig = this.localConfig();
+
+      if (localConfig !== null && _typeof(localConfig) === "object" && localConfig.hasOwnProperty("current") && typeof localConfig.current === "number") {
+        localConfig.config = localConfig.config || [];
+        localConfig.config[localConfig.current] = config;
+      } else {
+        localConfig = {
+          current: 0,
+          config: [config]
+        };
+      }
+
+      return JSON.stringify(localConfig);
+    },
+    localConfig: function localConfig() {
+      var config = null;
+      var storage = localStorage.getItem(storage_key);
+
+      if (storage !== null) {
+        try {
+          config = JSON.parse(storage);
+        } catch (e) {}
+      }
+
+      return config;
+    },
+    save: function save() {
+      localStorage.setItem(storage_key, this.getConfig());
       this.$bvToast.toast('配置保存成功', {
         title: '提示',
         variant: 'success',
@@ -14664,7 +14942,7 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
       });
     },
     clear: function clear() {
-      var _this = this;
+      var _this2 = this;
 
       this.$bvModal.msgBoxConfirm('是否要清除本地存档？清除后不可恢复，请谨慎操作！', {
         title: '请确认',
@@ -14679,9 +14957,9 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
       }).then(function (value) {
         if (value) {
           localStorage.removeItem(storage_key);
-          Object.assign(_this.$data, _this.$options.data());
+          Object.assign(_this2.$data, _this2.$options.data());
 
-          _this.$bvToast.toast('配置已清除', {
+          _this2.$bvToast.toast('配置已清除', {
             title: '提示',
             variant: 'success',
             //danger,warning,info,primary,secondary,default
@@ -14689,6 +14967,76 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
           });
         }
       })["catch"](function (err) {});
+    },
+    removeConfig: function removeConfig() {
+      var _this3 = this;
+
+      this.$bvModal.msgBoxConfirm('是否要删除配置 ' + this.localConfigList[this.selectConfigIndex] + ' ？删除后不可恢复，请谨慎操作！', {
+        title: '请确认',
+        size: 'sm',
+        buttonSize: 'sm',
+        okVariant: 'danger',
+        okTitle: '确认',
+        cancelTitle: '取消',
+        footerClass: 'p-2',
+        hideHeaderClose: false,
+        centered: true
+      }).then(function (value) {
+        if (value) {
+          var localConfig = _this3.localConfig();
+
+          if (localConfig !== null && _typeof(localConfig) === "object" && localConfig.hasOwnProperty("current") && typeof localConfig.current === "number") {
+            localConfig.config = localConfig.config || [];
+            localConfig.config.splice(_this3.selectConfigIndex, 1);
+            localConfig.current = 0;
+            localStorage.setItem(storage_key, JSON.stringify(localConfig));
+          } else {
+            localStorage.removeItem(storage_key);
+          }
+
+          Object.assign(_this3.$data, _this3.$options.data());
+
+          _this3.$bvToast.toast('配置已删除', {
+            title: '提示',
+            variant: 'success',
+            //danger,warning,info,primary,secondary,default
+            solid: true
+          });
+        }
+      });
+    },
+    addConfig: function addConfig() {
+      var _this4 = this;
+
+      this.$bvModal.msgBoxConfirm('是否要保存当前数据？', {
+        title: '请确认',
+        size: 'sm',
+        buttonSize: 'sm',
+        okVariant: 'danger',
+        okTitle: '确认',
+        cancelTitle: '取消',
+        footerClass: 'p-2',
+        hideHeaderClose: false,
+        centered: true
+      }).then(function (value) {
+        if (value) {
+          _this4.save();
+        }
+
+        var localConfig = _this4.localConfig();
+
+        if (localConfig !== null && _typeof(localConfig) === "object" && localConfig.hasOwnProperty("current") && typeof localConfig.current === "number") {
+          localConfig.current = localConfig.config.length;
+        } else {
+          localConfig = {
+            current: 1,
+            config: [config]
+          };
+        }
+
+        localStorage.setItem(storage_key, JSON.stringify(localConfig));
+        Object.assign(_this4.$data, _this4.$options.data());
+      });
     },
     stop: function stop() {
       try {
@@ -14726,22 +15074,138 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
       item.level = Math.min(2000, item.level);
       item.level = Math.max(1, item.level);
     },
-    "export": function _export() {
+    exportConfig: function exportConfig() {
       var h = this.$createElement;
-      var titleVNode = h('div', {
-        domProps: {
-          innerHTML: '导出配置'
-        }
-      });
       var messageVNode = h('div', {
         "class": ['foobar']
-      }, [h('p', {}, ['配置内容'])]);
+      }, [h('p', {}, ['请复制并保存下面的文本框内的内容']), h('textarea', {
+        "class": ['form-control'],
+        attrs: {
+          rows: 8
+        }
+      }, [this.getConfig()])]);
       this.$bvModal.msgBoxOk([messageVNode], {
-        title: [titleVNode],
+        title: '导出配置',
         buttonSize: 'sm',
         okTitle: '确认',
         centered: true,
-        size: 'sm'
+        size: 'xl'
+      });
+    },
+    importConfig: function importConfig() {
+      var _this5 = this;
+
+      var h = this.$createElement;
+      var json = "";
+      var messageVNode = h('div', {
+        "class": ['foobar']
+      }, [h('p', {}, ['请在下面的文本框内粘贴配置内容，然后点击确认按钮']), h('textarea', {
+        "class": ['form-control'],
+        attrs: {
+          rows: 8
+        },
+        on: {
+          input: function input(e) {
+            json = e.target.value;
+          }
+        }
+      }, [])]);
+      this.$bvModal.msgBoxConfirm(messageVNode, {
+        title: '导入配置',
+        size: 'xl',
+        buttonSize: 'sm',
+        okVariant: 'success',
+        okTitle: '确认',
+        cancelTitle: '取消',
+        footerClass: 'p-2',
+        hideHeaderClose: false,
+        centered: true
+      }).then(function (value) {
+        if (value) {
+          try {
+            var _config = JSON.parse(json);
+
+            if (_typeof(_config) !== "object" || !_config.hasOwnProperty("current") || typeof _config.current !== "number" || !_config.hasOwnProperty("config") || !Array.isArray(_config.config)) {
+              _this5.$bvToast.toast('无效的配置', {
+                title: '提示',
+                variant: 'danger',
+                //danger,warning,info,primary,secondary,default
+                solid: true
+              });
+
+              return;
+            }
+
+            var localConfig = _this5.localConfig();
+
+            if (localConfig !== null && _typeof(localConfig) === "object" && localConfig.hasOwnProperty("current") && typeof localConfig.current === "number") {
+              localConfig.config = [].concat(_toConsumableArray(localConfig.config), _toConsumableArray(_config.config));
+            } else {
+              localConfig = _config;
+            }
+
+            localStorage.setItem(storage_key, JSON.stringify(localConfig));
+            Object.assign(_this5.$data, _this5.$options.data());
+
+            _this5.$bvToast.toast('配置导入成功', {
+              title: '提示',
+              variant: 'success',
+              //danger,warning,info,primary,secondary,default
+              solid: true
+            });
+          } catch (e) {
+            _this5.$bvToast.toast('无效的配置', {
+              title: '提示',
+              variant: 'danger',
+              //danger,warning,info,primary,secondary,default
+              solid: true
+            });
+          }
+        }
+      });
+    },
+    switchConfig: function switchConfig() {
+      if (this.selectConfigIndex < 0) {
+        this.$bvToast.toast('无效的配置名', {
+          title: '提示',
+          variant: 'danger',
+          //danger,warning,info,primary,secondary,default
+          solid: true
+        });
+        return;
+      }
+
+      var localConfig = this.localConfig();
+
+      if (localConfig !== null && _typeof(localConfig) === "object" && localConfig.hasOwnProperty("current") && typeof localConfig.current === "number") {
+        if (this.selectConfigIndex >= localConfig.config.length) {
+          this.$bvToast.toast('无效的配置名', {
+            title: '提示',
+            variant: 'danger',
+            //danger,warning,info,primary,secondary,default
+            solid: true
+          });
+          return;
+        }
+
+        localConfig.current = this.selectConfigIndex;
+      } else {
+        this.$bvToast.toast('本地配置无效，无法切换', {
+          title: '提示',
+          variant: 'danger',
+          //danger,warning,info,primary,secondary,default
+          solid: true
+        });
+        return;
+      }
+
+      localStorage.setItem(storage_key, JSON.stringify(localConfig));
+      Object.assign(this.$data, this.$options.data());
+      this.$bvToast.toast('配置切换成功', {
+        title: '提示',
+        variant: 'success',
+        //danger,warning,info,primary,secondary,default
+        solid: true
       });
     }
   }
@@ -14767,6 +15231,18 @@ function getValidLevel(level) {
   }
 
   return level;
+}
+
+function getPolicyLevelData(step) {
+  var policy = Object(_Policy__WEBPACK_IMPORTED_MODULE_37__["getPolicy"])(step);
+  var data = [];
+  policy.policys.forEach(function (p) {
+    data.push({
+      title: p.title,
+      level: 1
+    });
+  });
+  return data;
 }
 
 /***/ })
