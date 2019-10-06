@@ -1,25 +1,17 @@
-select.form-control {
-  min-width: 56px; }
-
 .table-rare {
   background-color: #7741de; }
-
-.table-rare td {
+  .table-rare td {
     border-color: #5c34a7;
     color: #cecece; }
-
-.calculator-level {
+  .calculator-level, .calculator-star {
   min-width: 56px; }
-
-.badge-rare {
+  .badge-rare {
   background-color: #7741de;
   color: #cecece; }
-
-input::-webkit-outer-spin-button,
+  input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   -webkit-appearance: none; }
-
-input[type="number"] {
+  input[type="number"] {
   -moz-appearance: textfield; }
 
 

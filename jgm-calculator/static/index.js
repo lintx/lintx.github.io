@@ -198,9 +198,9 @@ var Buff = function Buff(range, target, buff) {
 
 var BuffRange = {
   Global: "所有建筑",
+  Supply: "供货",
   Online: "在线",
   Offline: "离线",
-  Supply: "供货",
   Residence: "住宅建筑",
   Business: "商业建筑",
   Industrial: "工业建筑",
@@ -210,8 +210,8 @@ var BuffSource = {
   Building: "建筑加成",
   Policy: "政策加成",
   Photo: "游记加成",
-  Quest: "任务加成",
-  Activity: "活动加成(如国庆buff)" //,
+  Activity: "活动加成(如国庆buff)",
+  Quest: "城市任务加成" //,
   // ShineChina:"家国之光"
 
 };
@@ -251,12 +251,6 @@ function () {
           this.Quest.push(b);
           break;
       }
-    }
-  }, {
-    key: "addQuest",
-    value: function addQuest(target) {
-      var b = new Buff(BuffRange.Targets, target.BuildingName, target.quest / 100);
-      this.Quest.push(b);
     }
   }, {
     key: "addBuilding",
@@ -401,7 +395,6 @@ function () {
     this.disabled = false;
     this.level = 1;
     this.star = 0;
-    this.quest = 0;
     this.buffs = []; //建筑加成
 
     this.BuildingName = name;
@@ -415,6 +408,7 @@ function () {
     value: function calculation(buffs) {
       var _this = this;
 
+      //即将废除
       var addition = {};
       var money = this.money;
       addition[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online] = money;
@@ -428,6 +422,32 @@ function () {
       return addition;
     }
   }, {
+    key: "sumMoney",
+    value: function sumMoney(multiple) {
+      var income = Object(_Level__WEBPACK_IMPORTED_MODULE_1__["getIncome"])(this.level);
+      var money = {};
+      money[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online] = multiple[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online] * income;
+      money[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline] = multiple[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline] * income;
+      return money;
+    }
+  }, {
+    key: "sumMultiple",
+    value: function sumMultiple(buffs) {
+      var _this2 = this;
+
+      var m = this.baseMoney * this.multiple;
+      var multiple = {};
+      multiple[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online] = m;
+      multiple[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline] = m / 2;
+      [_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Building, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Policy, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Photo, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Quest].forEach(function (source) {
+        var buff = buffs.Calculation(source, _this2);
+        Object.keys(buff).forEach(function (range) {
+          multiple[range] *= buff[range];
+        });
+      });
+      return multiple;
+    }
+  }, {
     key: "getBuffValue",
     value: function getBuffValue(buff) {
       return buff.buff * this.star;
@@ -435,7 +455,7 @@ function () {
   }, {
     key: "tooltip",
     get: function get() {
-      var _this2 = this;
+      var _this3 = this;
 
       if (this.star === 0) {
         return "";
@@ -446,7 +466,7 @@ function () {
       tooltip.push(Array(this.star + 1).join("★"));
       tooltip.push("等级 " + this.level);
       this.buffs.forEach(function (buff) {
-        tooltip.push(buff.target + "的收入增加 " + Math.round(_this2.getBuffValue(buff) * 100) + "%");
+        tooltip.push(buff.target + "的收入增加 " + Math.round(_this3.getBuffValue(buff) * 100) + "%");
       });
       tooltip.push("基础收益：" + this.baseMoney + "*" + this.multiple + "*" + Object(_Utils__WEBPACK_IMPORTED_MODULE_2__["renderSize"])(Object(_Level__WEBPACK_IMPORTED_MODULE_1__["getIncome"])(this.level)) + "=" + Object(_Utils__WEBPACK_IMPORTED_MODULE_2__["renderSize"])(this.money));
       return tooltip.join("<br />");
@@ -454,6 +474,7 @@ function () {
   }, {
     key: "money",
     get: function get() {
+      //即将废除
       return this.baseMoney * this.multiple * Object(_Level__WEBPACK_IMPORTED_MODULE_1__["getIncome"])(this.level); //这里需要按等级计算，这是基础金钱收益
     }
   }, {
@@ -2305,13 +2326,14 @@ function (_Building) {
 /*!*************************!*\
   !*** ./src/js/Level.js ***!
   \*************************/
-/*! exports provided: getIncome, getCost */
+/*! exports provided: getIncome, getCost, getData */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getIncome", function() { return getIncome; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getCost", function() { return getCost; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getData", function() { return getData; });
 /* harmony import */ var _Building__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Building */ "./src/js/Building.js");
 
 var levelData = {
@@ -14316,6 +14338,18 @@ var levelData = {
     legendaryCost: 6.52E+39
   }
 };
+Object.keys(levelData).forEach(function (level) {
+  level = Number(level);
+
+  if (level < 2000) {
+    var data = levelData[level];
+    var addMoney = getIncome(level + 1) - data.income;
+    data.addMoney = addMoney;
+    data.commonBenefit = addMoney / data.commonCost;
+    data.rareBenefit = addMoney / data.rareCost;
+    data.legendaryBenefit = addMoney / data.legendaryCost;
+  }
+});
 
 function getIncome(level) {
   return levelData[level].income;
@@ -14334,6 +14368,42 @@ function getCost(level, rarity) {
   }
 
   return 0;
+}
+
+function getData(level, rarity) {
+  var result = {
+    cost: 0,
+    benefit: 0,
+    income: 0,
+    addMoney: 0
+  };
+  var data = levelData[level];
+
+  if (!data) {
+    return result;
+  } else {
+    result.income = data.income;
+    result.addMoney = data.addMoney || 0;
+  }
+
+  switch (rarity) {
+    case _Building__WEBPACK_IMPORTED_MODULE_0__["BuildingRarity"].Common:
+      result.cost = data.commonCost;
+      result.benefit = data.commonBenefit || 0;
+      break;
+
+    case _Building__WEBPACK_IMPORTED_MODULE_0__["BuildingRarity"].Rare:
+      result.cost = data.rareCost;
+      result.benefit = data.rareBenefit || 0;
+      break;
+
+    case _Building__WEBPACK_IMPORTED_MODULE_0__["BuildingRarity"].Legendary:
+      result.cost = data.legendaryCost;
+      result.benefit = data.legendaryBenefit || 0;
+      break;
+  }
+
+  return result;
 }
 
 
@@ -14446,19 +14516,25 @@ function getPolicy(step) {
 /*!*************************!*\
   !*** ./src/js/Utils.js ***!
   \*************************/
-/*! exports provided: renderSize, getFlagArrs */
+/*! exports provided: renderSize, getFlagArrs, toNumber */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "renderSize", function() { return renderSize; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getFlagArrs", function() { return getFlagArrs; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "toNumber", function() { return toNumber; });
+var unitArr = ["", "K", "M", "B", "T", "aa", "bb", "cc", "dd", "ee", "ff", "gg", "hh", "ii", "jj", "kk", "ll", "mm", "nn", "oo", "pp", "qq", "rr", "ss", "tt", "uu", "vv", "ww", "xx", "yy", "zz"];
+var lowUnitArr = [];
+unitArr.forEach(function (v) {
+  lowUnitArr.push(v.toLowerCase());
+});
+
 function renderSize(value) {
-  if (null === value || value === '') {
+  if (null === value || value === '' || value === 0) {
     return "0";
   }
 
-  var unitArr = ["", "K", "M", "B", "T", "aa", "bb", "cc", "dd", "ee", "ff", "gg", "hh", "ii", "jj", "kk", "ll", "mm", "nn", "oo", "pp", "qq", "rr", "ss", "tt", "uu", "vv", "ww", "xx", "yy", "zz"];
   var index = 0,
       srcsize = parseFloat(value);
   index = Math.floor(Math.log(srcsize) / Math.log(1000));
@@ -14479,6 +14555,27 @@ function renderSize(value) {
   }
 
   return size + unit;
+}
+
+function toNumber(value) {
+  if (!isNaN(value)) {
+    return Number(value);
+  }
+
+  value = value.toLowerCase();
+  var arr = value.split(/^([\d\.]+)(.*)$/g);
+
+  if (arr.length !== 4) {
+    return 0;
+  }
+
+  var index = lowUnitArr.indexOf(arr[2]);
+
+  if (index === -1) {
+    return 0;
+  }
+
+  return Number(arr[1]) * Math.pow(1000, index);
 }
 
 function getFlagArrs(m, n) {
@@ -14635,7 +14732,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 
 var storage_key = "lintx-jgm-calculator-config";
 var worker = undefined;
-var version = "0.12";
+var version = "0.13";
 vue__WEBPACK_IMPORTED_MODULE_0__["default"].use(bootstrap_vue__WEBPACK_IMPORTED_MODULE_33__["default"]);
 vue__WEBPACK_IMPORTED_MODULE_0__["default"].use(portal_vue__WEBPACK_IMPORTED_MODULE_34___default.a);
 var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
@@ -14651,7 +14748,21 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
         showBuffConfig: true,
         showBuildingConfig: true,
         showOtherConfig: true,
-        configName: ""
+        configName: "",
+        questTargetBuff: [{
+          building: "",
+          buff: 0
+        }, {
+          building: "",
+          buff: 0
+        }, {
+          building: "",
+          buff: 0
+        }],
+        upgradeRecommend: {
+          mode: 1,
+          value: "100"
+        }
       },
       selectConfigIndex: 0,
       localConfigList: [],
@@ -14707,15 +14818,7 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
     if (localConfig !== null && _typeof(localConfig) === "object" && localConfig.hasOwnProperty("current") && typeof localConfig.current === "number") {
       config = localConfig.config[localConfig.current] || null;
       data.selectConfigIndex = localConfig.current;
-      localConfig.config.forEach(function (c, i) {
-        var name = "配置" + (i + 1);
-
-        if (c.hasOwnProperty("config") && c.config.hasOwnProperty("configName") && c.config.configName !== "") {
-          name += "(" + c.config.configName + ")";
-        }
-
-        data.localConfigList.push(name);
-      });
+      data.localConfigList = configList(localConfig);
     } else {
       config = localConfig;
     }
@@ -14730,7 +14833,6 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
               dbs.list.forEach(function (db) {
                 if (db.BuildingName === item.building) {
                   db.star = item.star;
-                  db.quest = item.quest;
                   db.disabled = item.disabled;
                   db.level = getValidLevel(item.level);
                 }
@@ -14775,23 +14877,6 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
 
     return data;
   },
-  watch: {
-    "policy.step": function policyStep(val, oldVal) {
-      var _this = this;
-
-      if (val !== oldVal) {
-        var temp = getPolicyLevelData(val);
-        temp.forEach(function (l) {
-          _this.policy.levels.forEach(function (pl) {
-            if (l.title === pl.title) {
-              l.level = pl.level;
-            }
-          });
-        });
-        this.policy.levels = temp;
-      }
-    }
-  },
   methods: {
     calculation: function calculation() {
       this.calculationIng = true; //拿出已有的建筑
@@ -14806,7 +14891,6 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
           if (!item.disabled && Number(item.star) > 0) {
             building.list.push({
               star: Number(item.star),
-              quest: item.quest,
               name: item.BuildingName,
               level: getValidLevel(item.level)
             });
@@ -14845,18 +14929,6 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
                     });
                   });
                 });
-
-                _self.buildings.forEach(function (building) {
-                  building.list.forEach(function (item) {
-                    if (program.addition.upgrade.building.BuildingName === item.BuildingName) {
-                      program.addition.upgrade.building = item;
-                    }
-
-                    if (program.addition.upgrade.nextBuilding.BuildingName === item.BuildingName) {
-                      program.addition.upgrade.nextBuilding = item;
-                    }
-                  });
-                });
               });
             } else if (mode === "progress") {
               _self.progress = data.progress;
@@ -14886,7 +14958,6 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
             config.building.push({
               building: item.BuildingName,
               star: Number(item.star),
-              quest: item.quest,
               disabled: item.disabled,
               level: getValidLevel(item.level)
             });
@@ -14932,8 +15003,9 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
 
       return config;
     },
-    save: function save() {
+    saveConfig: function saveConfig() {
       localStorage.setItem(storage_key, this.getConfig());
+      this.localConfigList = configList(this.localConfig());
       this.$bvToast.toast('配置保存成功', {
         title: '提示',
         variant: 'success',
@@ -14941,10 +15013,10 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
         solid: true
       });
     },
-    clear: function clear() {
-      var _this2 = this;
+    clearConfig: function clearConfig() {
+      var _this = this;
 
-      this.$bvModal.msgBoxConfirm('是否要清除本地存档？清除后不可恢复，请谨慎操作！', {
+      this.$bvModal.msgBoxConfirm('是否要清除本地存档（删除所有配置）？清除后不可恢复，请谨慎操作！', {
         title: '请确认',
         size: 'sm',
         buttonSize: 'sm',
@@ -14957,19 +15029,19 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
       }).then(function (value) {
         if (value) {
           localStorage.removeItem(storage_key);
-          Object.assign(_this2.$data, _this2.$options.data());
+          Object.assign(_this.$data, _this.$options.data());
 
-          _this2.$bvToast.toast('配置已清除', {
+          _this.$bvToast.toast('配置已清除', {
             title: '提示',
             variant: 'success',
             //danger,warning,info,primary,secondary,default
             solid: true
           });
         }
-      })["catch"](function (err) {});
+      });
     },
     removeConfig: function removeConfig() {
-      var _this3 = this;
+      var _this2 = this;
 
       this.$bvModal.msgBoxConfirm('是否要删除配置 ' + this.localConfigList[this.selectConfigIndex] + ' ？删除后不可恢复，请谨慎操作！', {
         title: '请确认',
@@ -14983,20 +15055,20 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
         centered: true
       }).then(function (value) {
         if (value) {
-          var localConfig = _this3.localConfig();
+          var localConfig = _this2.localConfig();
 
           if (localConfig !== null && _typeof(localConfig) === "object" && localConfig.hasOwnProperty("current") && typeof localConfig.current === "number") {
             localConfig.config = localConfig.config || [];
-            localConfig.config.splice(_this3.selectConfigIndex, 1);
+            localConfig.config.splice(_this2.selectConfigIndex, 1);
             localConfig.current = 0;
             localStorage.setItem(storage_key, JSON.stringify(localConfig));
           } else {
             localStorage.removeItem(storage_key);
           }
 
-          Object.assign(_this3.$data, _this3.$options.data());
+          Object.assign(_this2.$data, _this2.$options.data());
 
-          _this3.$bvToast.toast('配置已删除', {
+          _this2.$bvToast.toast('配置已删除', {
             title: '提示',
             variant: 'success',
             //danger,warning,info,primary,secondary,default
@@ -15006,7 +15078,7 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
       });
     },
     addConfig: function addConfig() {
-      var _this4 = this;
+      var _this3 = this;
 
       this.$bvModal.msgBoxConfirm('是否要保存当前数据？', {
         title: '请确认',
@@ -15020,22 +15092,71 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
         centered: true
       }).then(function (value) {
         if (value) {
-          _this4.save();
+          _this3.save();
         }
 
-        var localConfig = _this4.localConfig();
+        var localConfig = _this3.localConfig();
 
         if (localConfig !== null && _typeof(localConfig) === "object" && localConfig.hasOwnProperty("current") && typeof localConfig.current === "number") {
           localConfig.current = localConfig.config.length;
+          localConfig.config.push({});
         } else {
           localConfig = {
-            current: 1,
-            config: [config]
+            current: 0,
+            config: []
           };
         }
 
         localStorage.setItem(storage_key, JSON.stringify(localConfig));
-        Object.assign(_this4.$data, _this4.$options.data());
+        Object.assign(_this3.$data, _this3.$options.data());
+      });
+    },
+    copyConfig: function copyConfig() {
+      var _this4 = this;
+
+      this.$bvModal.msgBoxConfirm('是否要把当前存档复制一份？', {
+        title: '请确认',
+        size: 'sm',
+        buttonSize: 'sm',
+        okVariant: 'success',
+        okTitle: '确认',
+        cancelTitle: '取消',
+        footerClass: 'p-2',
+        hideHeaderClose: false,
+        centered: true
+      }).then(function (value) {
+        if (value) {
+          var localConfig = _this4.localConfig();
+
+          if (localConfig !== null && _typeof(localConfig) === "object" && localConfig.hasOwnProperty("current") && typeof localConfig.current === "number") {
+            if (localConfig.current >= localConfig.config.length) {
+              _this4.$bvToast.toast('无效的配置，无法复制', {
+                title: '提示',
+                variant: 'danger',
+                //danger,warning,info,primary,secondary,default
+                solid: true
+              });
+            } else {
+              localConfig.config.push(localConfig.config[localConfig.current]);
+              localStorage.setItem(storage_key, JSON.stringify(localConfig));
+              _this4.localConfigList = configList(localConfig);
+
+              _this4.$bvToast.toast('配置复制成功', {
+                title: '提示',
+                variant: 'success',
+                //danger,warning,info,primary,secondary,default
+                solid: true
+              });
+            }
+          } else {
+            _this4.$bvToast.toast('本地配置无效，无法复制', {
+              title: '提示',
+              variant: 'danger',
+              //danger,warning,info,primary,secondary,default
+              solid: true
+            });
+          }
+        }
       });
     },
     stop: function stop() {
@@ -15123,9 +15244,9 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
       }).then(function (value) {
         if (value) {
           try {
-            var _config = JSON.parse(json);
+            var config = JSON.parse(json);
 
-            if (_typeof(_config) !== "object" || !_config.hasOwnProperty("current") || typeof _config.current !== "number" || !_config.hasOwnProperty("config") || !Array.isArray(_config.config)) {
+            if (_typeof(config) !== "object" || !config.hasOwnProperty("current") || typeof config.current !== "number" || !config.hasOwnProperty("config") || !Array.isArray(config.config)) {
               _this5.$bvToast.toast('无效的配置', {
                 title: '提示',
                 variant: 'danger',
@@ -15139,9 +15260,9 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
             var localConfig = _this5.localConfig();
 
             if (localConfig !== null && _typeof(localConfig) === "object" && localConfig.hasOwnProperty("current") && typeof localConfig.current === "number") {
-              localConfig.config = [].concat(_toConsumableArray(localConfig.config), _toConsumableArray(_config.config));
+              localConfig.config = [].concat(_toConsumableArray(localConfig.config), _toConsumableArray(config.config));
             } else {
-              localConfig = _config;
+              localConfig = config;
             }
 
             localStorage.setItem(storage_key, JSON.stringify(localConfig));
@@ -15185,10 +15306,17 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
             //danger,warning,info,primary,secondary,default
             solid: true
           });
-          return;
+        } else {
+          localConfig.current = this.selectConfigIndex;
+          localStorage.setItem(storage_key, JSON.stringify(localConfig));
+          Object.assign(this.$data, this.$options.data());
+          this.$bvToast.toast('配置切换成功', {
+            title: '提示',
+            variant: 'success',
+            //danger,warning,info,primary,secondary,default
+            solid: true
+          });
         }
-
-        localConfig.current = this.selectConfigIndex;
       } else {
         this.$bvToast.toast('本地配置无效，无法切换', {
           title: '提示',
@@ -15196,16 +15324,85 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
           //danger,warning,info,primary,secondary,default
           solid: true
         });
-        return;
       }
+    },
+    switchPolicyStep: function switchPolicyStep() {
+      this.policy.levels = getPolicyLevelData(this.policy.step);
+    },
+    clearQuestData: function clearQuestData() {
+      var _this6 = this;
 
-      localStorage.setItem(storage_key, JSON.stringify(localConfig));
-      Object.assign(this.$data, this.$options.data());
-      this.$bvToast.toast('配置切换成功', {
-        title: '提示',
-        variant: 'success',
-        //danger,warning,info,primary,secondary,default
-        solid: true
+      this.$bvModal.msgBoxConfirm('是否要把城市任务加成清空？清空后如果没有保存配置，刷新后即可恢复。', {
+        title: '请确认',
+        size: 'sm',
+        buttonSize: 'sm',
+        okVariant: 'success',
+        okTitle: '确认',
+        cancelTitle: '取消',
+        footerClass: 'p-2',
+        hideHeaderClose: false,
+        centered: true
+      }).then(function (value) {
+        if (value) {
+          _this6.buffs.forEach(function (buff) {
+            if (buff.type === _Buff__WEBPACK_IMPORTED_MODULE_32__["BuffSource"].Quest) {
+              buff.list.forEach(function (item) {
+                item.buff = 0;
+              });
+            }
+          });
+
+          _this6.config.questTargetBuff.forEach(function (target) {
+            target.building = "";
+            target.buff = 0;
+          });
+
+          _this6.$bvToast.toast('清除成功，请配置新的任务加成数据', {
+            title: '提示',
+            variant: 'success',
+            //danger,warning,info,primary,secondary,default
+            solid: true
+          });
+        }
+      });
+    },
+    selectProgram: function selectProgram(buildings) {
+      var _this7 = this;
+
+      this.$bvModal.msgBoxConfirm('是否要把除了当前方案中的建筑之外的所有建筑都禁用？应用后如果没有保存配置，刷新后即可恢复。', {
+        title: '请确认',
+        size: 'sm',
+        buttonSize: 'sm',
+        okVariant: 'success',
+        okTitle: '确认',
+        cancelTitle: '取消',
+        footerClass: 'p-2',
+        hideHeaderClose: false,
+        centered: true
+      }).then(function (value) {
+        if (value) {
+          var bs = [];
+          buildings.forEach(function (b) {
+            bs.push(b.building);
+          });
+
+          _this7.buildings.forEach(function (b) {
+            b.list.forEach(function (item) {
+              if (bs.indexOf(item) === -1) {
+                item.disabled = true;
+              } else {
+                item.disabled = false;
+              }
+            });
+          });
+
+          _this7.$bvToast.toast('应用成功', {
+            title: '提示',
+            variant: 'success',
+            //danger,warning,info,primary,secondary,default
+            solid: true
+          });
+        }
       });
     }
   }
@@ -15239,10 +15436,30 @@ function getPolicyLevelData(step) {
   policy.policys.forEach(function (p) {
     data.push({
       title: p.title,
-      level: 1
+      level: 0
     });
   });
   return data;
+}
+
+function configList(localConfig) {
+  var list = [];
+
+  if (localConfig !== null && _typeof(localConfig) === "object") {
+    if (localConfig.hasOwnProperty("config") && Array.isArray(localConfig.config)) {
+      localConfig.config.forEach(function (c, i) {
+        var name = "配置" + (i + 1);
+
+        if (c.hasOwnProperty("config") && c.config.hasOwnProperty("configName") && c.config.configName !== "") {
+          name = c.config.configName;
+        }
+
+        list.push(name);
+      });
+    }
+  }
+
+  return list;
 }
 
 /***/ })

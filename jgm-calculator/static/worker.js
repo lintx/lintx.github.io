@@ -118,9 +118,9 @@ var Buff = function Buff(range, target, buff) {
 
 var BuffRange = {
   Global: "所有建筑",
+  Supply: "供货",
   Online: "在线",
   Offline: "离线",
-  Supply: "供货",
   Residence: "住宅建筑",
   Business: "商业建筑",
   Industrial: "工业建筑",
@@ -130,8 +130,8 @@ var BuffSource = {
   Building: "建筑加成",
   Policy: "政策加成",
   Photo: "游记加成",
-  Quest: "任务加成",
-  Activity: "活动加成(如国庆buff)" //,
+  Activity: "活动加成(如国庆buff)",
+  Quest: "城市任务加成" //,
   // ShineChina:"家国之光"
 
 };
@@ -171,12 +171,6 @@ function () {
           this.Quest.push(b);
           break;
       }
-    }
-  }, {
-    key: "addQuest",
-    value: function addQuest(target) {
-      var b = new Buff(BuffRange.Targets, target.BuildingName, target.quest / 100);
-      this.Quest.push(b);
     }
   }, {
     key: "addBuilding",
@@ -321,7 +315,6 @@ function () {
     this.disabled = false;
     this.level = 1;
     this.star = 0;
-    this.quest = 0;
     this.buffs = []; //建筑加成
 
     this.BuildingName = name;
@@ -335,6 +328,7 @@ function () {
     value: function calculation(buffs) {
       var _this = this;
 
+      //即将废除
       var addition = {};
       var money = this.money;
       addition[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online] = money;
@@ -348,6 +342,32 @@ function () {
       return addition;
     }
   }, {
+    key: "sumMoney",
+    value: function sumMoney(multiple) {
+      var income = Object(_Level__WEBPACK_IMPORTED_MODULE_1__["getIncome"])(this.level);
+      var money = {};
+      money[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online] = multiple[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online] * income;
+      money[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline] = multiple[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline] * income;
+      return money;
+    }
+  }, {
+    key: "sumMultiple",
+    value: function sumMultiple(buffs) {
+      var _this2 = this;
+
+      var m = this.baseMoney * this.multiple;
+      var multiple = {};
+      multiple[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online] = m;
+      multiple[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline] = m / 2;
+      [_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Building, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Policy, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Photo, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Quest].forEach(function (source) {
+        var buff = buffs.Calculation(source, _this2);
+        Object.keys(buff).forEach(function (range) {
+          multiple[range] *= buff[range];
+        });
+      });
+      return multiple;
+    }
+  }, {
     key: "getBuffValue",
     value: function getBuffValue(buff) {
       return buff.buff * this.star;
@@ -355,7 +375,7 @@ function () {
   }, {
     key: "tooltip",
     get: function get() {
-      var _this2 = this;
+      var _this3 = this;
 
       if (this.star === 0) {
         return "";
@@ -366,7 +386,7 @@ function () {
       tooltip.push(Array(this.star + 1).join("★"));
       tooltip.push("等级 " + this.level);
       this.buffs.forEach(function (buff) {
-        tooltip.push(buff.target + "的收入增加 " + Math.round(_this2.getBuffValue(buff) * 100) + "%");
+        tooltip.push(buff.target + "的收入增加 " + Math.round(_this3.getBuffValue(buff) * 100) + "%");
       });
       tooltip.push("基础收益：" + this.baseMoney + "*" + this.multiple + "*" + Object(_Utils__WEBPACK_IMPORTED_MODULE_2__["renderSize"])(Object(_Level__WEBPACK_IMPORTED_MODULE_1__["getIncome"])(this.level)) + "=" + Object(_Utils__WEBPACK_IMPORTED_MODULE_2__["renderSize"])(this.money));
       return tooltip.join("<br />");
@@ -374,6 +394,7 @@ function () {
   }, {
     key: "money",
     get: function get() {
+      //即将废除
       return this.baseMoney * this.multiple * Object(_Level__WEBPACK_IMPORTED_MODULE_1__["getIncome"])(this.level); //这里需要按等级计算，这是基础金钱收益
     }
   }, {
@@ -2225,13 +2246,14 @@ function (_Building) {
 /*!*************************!*\
   !*** ./src/js/Level.js ***!
   \*************************/
-/*! exports provided: getIncome, getCost */
+/*! exports provided: getIncome, getCost, getData */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getIncome", function() { return getIncome; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getCost", function() { return getCost; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getData", function() { return getData; });
 /* harmony import */ var _Building__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Building */ "./src/js/Building.js");
 
 var levelData = {
@@ -14236,6 +14258,18 @@ var levelData = {
     legendaryCost: 6.52E+39
   }
 };
+Object.keys(levelData).forEach(function (level) {
+  level = Number(level);
+
+  if (level < 2000) {
+    var data = levelData[level];
+    var addMoney = getIncome(level + 1) - data.income;
+    data.addMoney = addMoney;
+    data.commonBenefit = addMoney / data.commonCost;
+    data.rareBenefit = addMoney / data.rareCost;
+    data.legendaryBenefit = addMoney / data.legendaryCost;
+  }
+});
 
 function getIncome(level) {
   return levelData[level].income;
@@ -14254,6 +14288,42 @@ function getCost(level, rarity) {
   }
 
   return 0;
+}
+
+function getData(level, rarity) {
+  var result = {
+    cost: 0,
+    benefit: 0,
+    income: 0,
+    addMoney: 0
+  };
+  var data = levelData[level];
+
+  if (!data) {
+    return result;
+  } else {
+    result.income = data.income;
+    result.addMoney = data.addMoney || 0;
+  }
+
+  switch (rarity) {
+    case _Building__WEBPACK_IMPORTED_MODULE_0__["BuildingRarity"].Common:
+      result.cost = data.commonCost;
+      result.benefit = data.commonBenefit || 0;
+      break;
+
+    case _Building__WEBPACK_IMPORTED_MODULE_0__["BuildingRarity"].Rare:
+      result.cost = data.rareCost;
+      result.benefit = data.rareBenefit || 0;
+      break;
+
+    case _Building__WEBPACK_IMPORTED_MODULE_0__["BuildingRarity"].Legendary:
+      result.cost = data.legendaryCost;
+      result.benefit = data.legendaryBenefit || 0;
+      break;
+  }
+
+  return result;
 }
 
 
@@ -14366,19 +14436,25 @@ function getPolicy(step) {
 /*!*************************!*\
   !*** ./src/js/Utils.js ***!
   \*************************/
-/*! exports provided: renderSize, getFlagArrs */
+/*! exports provided: renderSize, getFlagArrs, toNumber */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "renderSize", function() { return renderSize; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getFlagArrs", function() { return getFlagArrs; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "toNumber", function() { return toNumber; });
+var unitArr = ["", "K", "M", "B", "T", "aa", "bb", "cc", "dd", "ee", "ff", "gg", "hh", "ii", "jj", "kk", "ll", "mm", "nn", "oo", "pp", "qq", "rr", "ss", "tt", "uu", "vv", "ww", "xx", "yy", "zz"];
+var lowUnitArr = [];
+unitArr.forEach(function (v) {
+  lowUnitArr.push(v.toLowerCase());
+});
+
 function renderSize(value) {
-  if (null === value || value === '') {
+  if (null === value || value === '' || value === 0) {
     return "0";
   }
 
-  var unitArr = ["", "K", "M", "B", "T", "aa", "bb", "cc", "dd", "ee", "ff", "gg", "hh", "ii", "jj", "kk", "ll", "mm", "nn", "oo", "pp", "qq", "rr", "ss", "tt", "uu", "vv", "ww", "xx", "yy", "zz"];
   var index = 0,
       srcsize = parseFloat(value);
   index = Math.floor(Math.log(srcsize) / Math.log(1000));
@@ -14399,6 +14475,27 @@ function renderSize(value) {
   }
 
   return size + unit;
+}
+
+function toNumber(value) {
+  if (!isNaN(value)) {
+    return Number(value);
+  }
+
+  value = value.toLowerCase();
+  var arr = value.split(/^([\d\.]+)(.*)$/g);
+
+  if (arr.length !== 4) {
+    return 0;
+  }
+
+  var index = lowUnitArr.indexOf(arr[2]);
+
+  if (index === -1) {
+    return 0;
+  }
+
+  return Number(arr[1]) * Math.pow(1000, index);
 }
 
 function getFlagArrs(m, n) {
@@ -14545,7 +14642,32 @@ function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
 onmessage = function onmessage(e) {
   var data = e.data;
-  calculation(data.list, data.policy, data.buff, data.config);
+  var result;
+
+  if (data.config.upgradeRecommend.mode === 1) {
+    try {
+      data.config.upgradeRecommend.value = Math.round(Number(data.config.upgradeRecommend.value));
+    } catch (e) {
+      data.config.upgradeRecommend.value = 100;
+    }
+
+    data.config.upgradeRecommend.value = Math.max(1, data.config.upgradeRecommend.value);
+    data.config.upgradeRecommend.value = Math.min(9 * 2000, data.config.upgradeRecommend.value);
+  } else {
+    data.config.upgradeRecommend.value = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["toNumber"])(data.config.upgradeRecommend.value);
+  }
+
+  if (data.config.upgradeRecommend.mode === 4) {
+    result = calculationType2(data.list, data.policy, data.buff, data.config);
+  } else {
+    result = calculationType1(data.list, data.policy, data.buff, data.config);
+  }
+
+  postMessage({
+    mode: "result",
+    result: result
+  });
+  postMessage("done");
 };
 
 var buildings = [new _Builds_Chalet__WEBPACK_IMPORTED_MODULE_1__["default"](), new _Builds_SteelStructureHouse__WEBPACK_IMPORTED_MODULE_2__["default"](), new _Builds_Bungalow__WEBPACK_IMPORTED_MODULE_3__["default"](), new _Builds_SmallApartment__WEBPACK_IMPORTED_MODULE_4__["default"](), new _Builds_Residential__WEBPACK_IMPORTED_MODULE_5__["default"](), new _Builds_TalentApartment__WEBPACK_IMPORTED_MODULE_6__["default"](), new _Builds_GardenHouse__WEBPACK_IMPORTED_MODULE_7__["default"](), new _Builds_ChineseSmallBuilding__WEBPACK_IMPORTED_MODULE_8__["default"](), new _Builds_SkyVilla__WEBPACK_IMPORTED_MODULE_9__["default"](), new _Builds_RevivalMansion__WEBPACK_IMPORTED_MODULE_10__["default"](), new _Builds_ConvenienceStore__WEBPACK_IMPORTED_MODULE_11__["default"](), new _Builds_School__WEBPACK_IMPORTED_MODULE_12__["default"](), new _Builds_ClothingStore__WEBPACK_IMPORTED_MODULE_13__["default"](), new _Builds_HardwareStore__WEBPACK_IMPORTED_MODULE_14__["default"](), new _Builds_VegetableMarket__WEBPACK_IMPORTED_MODULE_15__["default"](), new _Builds_BookCity__WEBPACK_IMPORTED_MODULE_16__["default"](), new _Builds_BusinessCenter__WEBPACK_IMPORTED_MODULE_17__["default"](), new _Builds_GasStation__WEBPACK_IMPORTED_MODULE_18__["default"](), new _Builds_FolkFood__WEBPACK_IMPORTED_MODULE_19__["default"](), new _Builds_MediaVoice__WEBPACK_IMPORTED_MODULE_20__["default"](), new _Builds_WoodFactory__WEBPACK_IMPORTED_MODULE_21__["default"](), new _Builds_PaperMill__WEBPACK_IMPORTED_MODULE_22__["default"](), new _Builds_WaterPlant__WEBPACK_IMPORTED_MODULE_23__["default"](), new _Builds_PowerPlant__WEBPACK_IMPORTED_MODULE_24__["default"](), new _Builds_FoodFactory__WEBPACK_IMPORTED_MODULE_25__["default"](), new _Builds_SteelPlant__WEBPACK_IMPORTED_MODULE_26__["default"](), new _Builds_TextileMill__WEBPACK_IMPORTED_MODULE_27__["default"](), new _Builds_PartsFactory__WEBPACK_IMPORTED_MODULE_28__["default"](), new _Builds_TencentMachinery__WEBPACK_IMPORTED_MODULE_29__["default"](), new _Builds_PeoplesOil__WEBPACK_IMPORTED_MODULE_30__["default"]()];
@@ -14553,7 +14675,7 @@ buildings.forEach(function (item) {
   item.initBuffs();
 });
 
-function calculation(list, policy, buff, config) {
+function getPrograms(list, config) {
   var programs = [];
   list.forEach(function (building) {
     var program = [];
@@ -14566,7 +14688,6 @@ function calculation(list, policy, buff, config) {
           buildings.forEach(function (item) {
             if (item.BuildingName === c.name) {
               item.star = c.star;
-              item.quest = c.quest;
 
               if (!config.allBuildingLevel1) {
                 item.level = c.level;
@@ -14583,56 +14704,29 @@ function calculation(list, policy, buff, config) {
       program.push(p);
     });
     programs.push(program);
-  }); //需要结果：
-  //1.在线金币最高
-  //2.货物加成最高且在线金币最高
-  //3.货物加成最高且橙色建筑最多且紫色建筑最多
-  //4.离线金币最高
+  });
+  return programs;
+}
 
-  var result = {
-    onlineMoney: {
-      money: 0,
-      addition: {},
-      buffs: null
-    },
-    supplyMoney: {
-      supply: 0,
-      money: 0,
-      addition: {},
-      buffs: null
-    },
-    supplyRarity: {
-      supply: 0,
-      legendary: 0,
-      rare: 0,
-      money: 0,
-      addition: {},
-      buffs: null
-    },
-    supplyLegendaryMoney: {
-      supply: 0,
-      legendary: 0,
-      money: 0,
-      addition: {},
-      buffs: null
-    },
-    offlineMoney: {
-      money: 0,
-      addition: {},
-      buffs: null
-    }
-  }; //全局的buff
+function getGlobalBuff(policy, buff, config) {
+  //全局的buff
+  var globalBuffs = new _Buff__WEBPACK_IMPORTED_MODULE_0__["Buffs"](); //添加常规填写的buff（游记buff、城市任务普通buff、活动buff）
 
-  var globalBuffs = new _Buff__WEBPACK_IMPORTED_MODULE_0__["Buffs"]();
   buff.forEach(function (source) {
     source.list.forEach(function (buff) {
       globalBuffs.add(source.type, new _Buff__WEBPACK_IMPORTED_MODULE_0__["Buff"](buff.range, buff.target, buff.buff));
     });
-  });
+  }); //添加家国之光buff
 
   if (config.shineChinaBuff > 0) {
     globalBuffs.add(_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Policy, new _Buff__WEBPACK_IMPORTED_MODULE_0__["Buff"](_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Global, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Global, config.shineChinaBuff));
   }
+
+  config.questTargetBuff.forEach(function (target) {
+    if (target.building !== "" && target.buff > 0) {
+      globalBuffs.add(_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Quest, new _Buff__WEBPACK_IMPORTED_MODULE_0__["Buff"](_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Targets, target.building, target.buff));
+    }
+  }); //添加政策buff
 
   var _loop = function _loop(i) {
     Object(_Policy__WEBPACK_IMPORTED_MODULE_34__["getPolicy"])(i).policys.forEach(function (p) {
@@ -14661,12 +14755,67 @@ function calculation(list, policy, buff, config) {
     _loop(i);
   }
 
+  return globalBuffs;
+}
+
+function calculationType1(list, policy, buff, config) {
+  var programs = getPrograms(list, config); //需要结果：
+  //1.在线金币最高
+  //2.货物加成最高且在线金币最高
+  //3.货物加成最高且橙色建筑最多且紫色建筑最多
+  //4.离线金币最高
+
+  var tempResult = {
+    onlineMoney: {
+      title: ["在线金币优先策略"],
+      money: 0,
+      addition: {}
+    },
+    supplyMoney: {
+      title: ["供货优先、金币次之策略"],
+      supply: 0,
+      money: 0,
+      addition: {}
+    },
+    supplyRarity: {
+      title: ["供货优先、橙卡次之、紫卡再次之策略"],
+      supply: 0,
+      legendary: 0,
+      rare: 0,
+      money: 0,
+      addition: {}
+    },
+    supplyLegendaryMoney: {
+      title: ["供货优先、橙卡次之、金币再次之策略"],
+      supply: 0,
+      legendary: 0,
+      money: 0,
+      addition: {}
+    },
+    offlineMoney: {
+      title: ["离线金币优先策略"],
+      money: 0,
+      addition: {}
+    }
+  }; //全局的buff
+
+  var globalBuffs = getGlobalBuff(policy, buff, config);
   var progressFull = programs[0].length;
+  var currentProgress = 0;
+  var progressTime = new Date().getTime();
   programs[0].forEach(function (val1, i1) {
-    postMessage({
-      mode: "progress",
-      progress: Math.round((i1 + 1) / progressFull * 100)
-    });
+    var tempProgress = Math.round((i1 + 1) / progressFull * 100);
+    var nowTime = new Date().getTime();
+
+    if (tempProgress > currentProgress && nowTime - progressTime >= 500) {
+      currentProgress = tempProgress;
+      progressTime = nowTime;
+      postMessage({
+        mode: "progress",
+        progress: currentProgress
+      });
+    }
+
     programs[1].forEach(function (val2) {
       programs[2].forEach(function (val3) {
         var temp = [].concat(_toConsumableArray(val1), _toConsumableArray(val2), _toConsumableArray(val3));
@@ -14674,16 +14823,14 @@ function calculation(list, policy, buff, config) {
           online: 0,
           offline: 0,
           supply: 0,
-          buildings: []
+          buildings: [],
+          toTps: 0,
+          useMoney: 0
         };
         var buffs = new _Buff__WEBPACK_IMPORTED_MODULE_0__["Buffs"]();
         buffs.Policy = globalBuffs.Policy;
-        buffs.Photo = globalBuffs.Photo; //任务加成因为可能会添加特定建筑的加成，所以不能直接引用
-
-        globalBuffs.Quest.forEach(function (b) {
-          // buffs.add(BuffSource.Quest,b);
-          buffs.Quest.push(b);
-        });
+        buffs.Photo = globalBuffs.Photo;
+        buffs.Quest = globalBuffs.Quest;
         var legendary = 0;
         var rare = 0;
         temp.forEach(function (t) {
@@ -14694,241 +14841,377 @@ function calculation(list, policy, buff, config) {
           }
 
           buffs.addBuilding(t);
-
-          if (t.quest > 0) {
-            buffs.addQuest(t);
-          }
         });
         temp.forEach(function (t) {
-          var a = t.calculation(buffs);
-          addition.online += a[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online];
-          addition.offline += a[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline];
+          var sumMultiple = t.sumMultiple(buffs);
+          var sumMoney = t.sumMoney(sumMultiple);
+          addition.online += sumMoney[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online];
+          addition.offline += sumMoney[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline];
           addition.buildings.push({
-            online: a[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online],
-            offline: a[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline],
+            online: sumMoney[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online],
+            offline: sumMoney[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline],
+            multiple: sumMultiple,
+            toLevel: t.level,
+            toOnline: sumMoney[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online],
+            tooltip: "",
             building: t
           });
         });
         addition.supply = Math.round(buffs.supplyBuff * 100);
+        addition.toTps = addition.online;
         var supply = addition.supply;
 
         if (config.supplyStep50) {
           supply = Math.floor(supply / 50);
         }
 
-        if (addition.online > result.onlineMoney.money) {
-          result.onlineMoney.money = addition.online;
-          result.onlineMoney.addition = addition;
-          result.onlineMoney.buffs = buffs;
+        if (addition.online > tempResult.onlineMoney.money) {
+          tempResult.onlineMoney.money = addition.online;
+          tempResult.onlineMoney.addition = addition;
         }
 
-        if (addition.offline > result.offlineMoney.money) {
-          result.offlineMoney.money = addition.offline;
-          result.offlineMoney.addition = addition;
-          result.offlineMoney.buffs = buffs;
+        if (addition.offline > tempResult.offlineMoney.money) {
+          tempResult.offlineMoney.money = addition.offline;
+          tempResult.offlineMoney.addition = addition;
         }
 
-        if (supply === result.supplyMoney.supply) {
-          if (addition.online > result.supplyMoney.money) {
-            result.supplyMoney.money = addition.online;
-            result.supplyMoney.supply = supply;
-            result.supplyMoney.addition = addition;
-            result.supplyMoney.buffs = buffs;
+        if (supply === tempResult.supplyMoney.supply) {
+          if (addition.online > tempResult.supplyMoney.money) {
+            tempResult.supplyMoney.money = addition.online;
+            tempResult.supplyMoney.supply = supply;
+            tempResult.supplyMoney.addition = addition;
           }
-        } else if (supply > result.supplyMoney.supply) {
-          result.supplyMoney.money = addition.online;
-          result.supplyMoney.supply = supply;
-          result.supplyMoney.addition = addition;
-          result.supplyMoney.buffs = buffs;
+        } else if (supply > tempResult.supplyMoney.supply) {
+          tempResult.supplyMoney.money = addition.online;
+          tempResult.supplyMoney.supply = supply;
+          tempResult.supplyMoney.addition = addition;
         }
 
-        if (supply === result.supplyRarity.supply) {
-          if (legendary === result.supplyRarity.legendary) {
-            if (rare === result.supplyRarity.rare) {
-              if (addition.online > result.supplyRarity.money) {
-                result.supplyRarity.supply = supply;
-                result.supplyRarity.legendary = legendary;
-                result.supplyRarity.rare = rare;
-                result.supplyRarity.addition = addition;
-                result.supplyRarity.buffs = buffs;
-                result.supplyRarity.money = addition.online;
+        if (supply === tempResult.supplyRarity.supply) {
+          if (legendary === tempResult.supplyRarity.legendary) {
+            if (rare === tempResult.supplyRarity.rare) {
+              if (addition.online > tempResult.supplyRarity.money) {
+                tempResult.supplyRarity.supply = supply;
+                tempResult.supplyRarity.legendary = legendary;
+                tempResult.supplyRarity.rare = rare;
+                tempResult.supplyRarity.addition = addition;
+                tempResult.supplyRarity.money = addition.online;
               }
-            } else if (rare > result.supplyRarity.rare) {
-              result.supplyRarity.supply = supply;
-              result.supplyRarity.legendary = legendary;
-              result.supplyRarity.rare = rare;
-              result.supplyRarity.addition = addition;
-              result.supplyRarity.buffs = buffs;
-              result.supplyRarity.money = addition.online;
+            } else if (rare > tempResult.supplyRarity.rare) {
+              tempResult.supplyRarity.supply = supply;
+              tempResult.supplyRarity.legendary = legendary;
+              tempResult.supplyRarity.rare = rare;
+              tempResult.supplyRarity.addition = addition;
+              tempResult.supplyRarity.money = addition.online;
             }
-          } else if (legendary > result.supplyRarity.legendary) {
-            result.supplyRarity.supply = supply;
-            result.supplyRarity.legendary = legendary;
-            result.supplyRarity.rare = rare;
-            result.supplyRarity.addition = addition;
-            result.supplyRarity.buffs = buffs;
-            result.supplyRarity.money = addition.online;
+          } else if (legendary > tempResult.supplyRarity.legendary) {
+            tempResult.supplyRarity.supply = supply;
+            tempResult.supplyRarity.legendary = legendary;
+            tempResult.supplyRarity.rare = rare;
+            tempResult.supplyRarity.addition = addition;
+            tempResult.supplyRarity.money = addition.online;
           }
-        } else if (supply > result.supplyRarity.supply) {
-          result.supplyRarity.supply = supply;
-          result.supplyRarity.legendary = legendary;
-          result.supplyRarity.rare = rare;
-          result.supplyRarity.addition = addition;
-          result.supplyRarity.buffs = buffs;
-          result.supplyRarity.money = addition.online;
+        } else if (supply > tempResult.supplyRarity.supply) {
+          tempResult.supplyRarity.supply = supply;
+          tempResult.supplyRarity.legendary = legendary;
+          tempResult.supplyRarity.rare = rare;
+          tempResult.supplyRarity.addition = addition;
+          tempResult.supplyRarity.money = addition.online;
         }
 
-        if (supply === result.supplyLegendaryMoney.supply) {
-          if (legendary === result.supplyLegendaryMoney.legendary) {
-            if (addition.online > result.supplyLegendaryMoney.money) {
-              result.supplyLegendaryMoney.supply = supply;
-              result.supplyLegendaryMoney.legendary = legendary;
-              result.supplyLegendaryMoney.money = addition.online;
-              result.supplyLegendaryMoney.addition = addition;
-              result.supplyLegendaryMoney.buffs = buffs;
+        if (supply === tempResult.supplyLegendaryMoney.supply) {
+          if (legendary === tempResult.supplyLegendaryMoney.legendary) {
+            if (addition.online > tempResult.supplyLegendaryMoney.money) {
+              tempResult.supplyLegendaryMoney.supply = supply;
+              tempResult.supplyLegendaryMoney.legendary = legendary;
+              tempResult.supplyLegendaryMoney.money = addition.online;
+              tempResult.supplyLegendaryMoney.addition = addition;
             }
-          } else if (legendary > result.supplyLegendaryMoney.legendary) {
-            result.supplyLegendaryMoney.supply = supply;
-            result.supplyLegendaryMoney.legendary = legendary;
-            result.supplyLegendaryMoney.money = addition.online;
-            result.supplyLegendaryMoney.addition = addition;
-            result.supplyLegendaryMoney.buffs = buffs;
+          } else if (legendary > tempResult.supplyLegendaryMoney.legendary) {
+            tempResult.supplyLegendaryMoney.supply = supply;
+            tempResult.supplyLegendaryMoney.legendary = legendary;
+            tempResult.supplyLegendaryMoney.money = addition.online;
+            tempResult.supplyLegendaryMoney.addition = addition;
           }
-        } else if (supply > result.supplyLegendaryMoney.supply) {
-          result.supplyLegendaryMoney.supply = supply;
-          result.supplyLegendaryMoney.legendary = legendary;
-          result.supplyLegendaryMoney.money = addition.online;
-          result.supplyLegendaryMoney.addition = addition;
-          result.supplyLegendaryMoney.buffs = buffs;
+        } else if (supply > tempResult.supplyLegendaryMoney.supply) {
+          tempResult.supplyLegendaryMoney.supply = supply;
+          tempResult.supplyLegendaryMoney.legendary = legendary;
+          tempResult.supplyLegendaryMoney.money = addition.online;
+          tempResult.supplyLegendaryMoney.addition = addition;
         }
       });
     });
   });
-  var arr = [];
-  Object.keys(result).forEach(function (key) {
-    var r = result[key];
+  var result = [];
+  Object.keys(tempResult).forEach(function (key) {
+    //遍历返回结果集
+    var r = tempResult[key];
     var arr1 = [];
-    arr.forEach(function (ar) {
+    result.forEach(function (ar) {
+      //将arr中的元素加入到临时arr
       arr1.push(ar.addition);
     });
+    var index = arr1.indexOf(r.addition);
 
-    if (arr1.indexOf(r.addition) === -1) {
-      arr.push(r);
+    if (index === -1) {
+      //如果结果集中的元素不在临时arr中，那就把该元素加入到arr
+      result.push({
+        title: r.title,
+        addition: r.addition
+      });
+    } else {
+      result.forEach(function (ar) {
+        if (ar.addition === r.addition) {
+          ar.title.push(r.title[0]);
+        }
+      });
     }
   });
-  arr.forEach(function (program) {
-    program.addition.online = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(program.addition.online);
-    program.addition.offline = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(program.addition.offline);
-    var upgrade = {
-      best: {
-        online: 0,
-        upgradeBenefit: 0,
-        building: null
-      },
-      minor: {
-        online: 0,
-        upgradeBenefit: 0,
-        building: null
-      }
-    };
-    program.addition.buildings.forEach(function (building) {
-      //计算方案内建筑升级最优解
-      //1.先计算每个建筑升1级的金币-收益比
-      //2.然后取出最优解和次优解，再计算最优解升级到多少级后变为次优解
-      if (building.building.level < 2000) {
-        var level = building.building.level;
-        var benefitObj = upgradeBenefit(building.online, building.building, program.buffs);
-        building.building.level = level; //及时把建筑的等级恢复原样
+  result.forEach(function (program) {
+    if (config.upgradeRecommend.mode === 1) {
+      var count = 0;
 
-        var benefit = benefitObj.benefit;
+      while (count < config.upgradeRecommend.value) {
+        //按优先度升级
+        var u = upgrade(program.addition.buildings);
 
-        if (benefit > upgrade.best.upgradeBenefit) {
-          upgrade.minor.upgradeBenefit = upgrade.best.upgradeBenefit;
-          upgrade.minor.building = upgrade.best.building;
-          upgrade.minor.online = upgrade.best.online;
-          upgrade.best.upgradeBenefit = benefit;
-          upgrade.best.building = building;
-          upgrade.best.online = building.online;
-        } else if (benefit > upgrade.minor.upgradeBenefit) {
-          upgrade.minor.upgradeBenefit = benefit;
-          upgrade.minor.building = building;
-          upgrade.minor.online = building.online;
-        }
-      }
-
-      building.online = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(building.online);
-      building.offline = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(building.offline);
-    }); // console.log("最优建筑：" + upgrade.best.building.building.BuildingName + ",等级：" + upgrade.best.building.building.level + ",效益：" + upgrade.best.upgradeBenefit + ",次优建筑:" + upgrade.minor.building.building.BuildingName + ",效益：" + upgrade.minor.upgradeBenefit);
-
-    if (upgrade.best.building !== null && upgrade.best.building.building.level < 2000) {
-      var level = upgrade.best.building.building.level;
-
-      while (true) {
-        var benefitObj = upgradeBenefit(upgrade.best.online, upgrade.best.building.building, program.buffs); // console.log("模拟升级：" + upgrade.best.building.building.BuildingName + ",目标等级：" + upgrade.best.building.building.level + ",效益：" + benefitObj.benefit);
-
-        upgrade.best.online = benefitObj.online;
-
-        if (benefitObj.benefit < upgrade.minor.upgradeBenefit) {
-          program.addition.upgrade = {
-            building: upgrade.best.building.building,
-            toLevel: upgrade.best.building.building.level - 1,
-            nextBuilding: upgrade.minor.building.building
-          };
+        if (u.addMoney === 0) {
           break;
         }
-      }
 
-      upgrade.best.building.building.level = level;
+        u.building.toOnline += u.addMoney;
+        program.addition.toTps += u.addMoney;
+        program.addition.useMoney += u.cost;
+        count += 1;
+      }
+    } else if (config.upgradeRecommend.mode === 2) {
+      var money = 0;
+
+      while (money < config.upgradeRecommend.value) {
+        //按优先度升级，并返回消耗的金钱，并将money加上对应数值
+        var _u = upgrade(program.addition.buildings);
+
+        if (_u.addMoney === 0) {
+          break;
+        }
+
+        money += _u.cost;
+
+        if (money > config.upgradeRecommend.value) {
+          _u.building.toLevel -= 1;
+          break;
+        }
+
+        _u.building.toOnline += _u.addMoney;
+        program.addition.toTps += _u.addMoney;
+        program.addition.useMoney += _u.cost;
+      }
+    } else if (config.upgradeRecommend.mode === 3) {
+      var tps = program.addition.online;
+
+      while (tps < config.upgradeRecommend.value) {
+        //按优先度升级，并返回增加的tps，并将tps加上对应的数值
+        var _u2 = upgrade(program.addition.buildings);
+
+        if (_u2.addMoney === 0) {
+          break;
+        }
+
+        tps += _u2.addMoney;
+        _u2.building.toOnline += _u2.addMoney;
+        program.addition.toTps += _u2.addMoney;
+        program.addition.useMoney += _u2.cost;
+      }
+    }
+
+    program.addition.buildings.forEach(function (building) {
+      building.online = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(building.online);
+      building.offline = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(building.offline);
+      building.toOnline = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(building.toOnline);
+
+      if (building.toLevel === building.building.level) {
+        building.toLevel = "-";
+      } else {
+        building.tooltip = "该组合和当前buff下，该建筑升级到" + building.toLevel + "级时的在线收入为" + building.toOnline + "/秒";
+      }
+    });
+    program.addition.toTps = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(program.addition.toTps);
+    program.addition.useMoney = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(program.addition.useMoney);
+    program.addition.online = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(program.addition.online);
+    program.addition.offline = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(program.addition.offline);
+  });
+  return result;
+}
+
+function calculationType2(list, policy, buff, config) {
+  var programs = getPrograms(list, config);
+  var tempResult = {
+    title: ["在线金币优先策略"],
+    money: 0,
+    addition: {}
+  };
+  var useMoney = -1;
+  var bestTps = 0; //全局的buff
+
+  var globalBuffs = getGlobalBuff(policy, buff, config);
+  var progressFull = programs[0].length;
+  var currentProgress = 0;
+  var progressTime = new Date().getTime();
+  programs[0].forEach(function (val1, i1) {
+    var tempProgress = Math.round((i1 + 1) / progressFull * 100);
+    var nowTime = new Date().getTime();
+
+    if (tempProgress > currentProgress && nowTime - progressTime >= 500) {
+      currentProgress = tempProgress;
+      progressTime = nowTime;
+      postMessage({
+        mode: "progress",
+        progress: currentProgress
+      });
+    }
+
+    programs[1].forEach(function (val2) {
+      programs[2].forEach(function (val3) {
+        var temp = [].concat(_toConsumableArray(val1), _toConsumableArray(val2), _toConsumableArray(val3));
+        var addition = {
+          online: 0,
+          offline: 0,
+          supply: 0,
+          buildings: [],
+          toTps: 0,
+          useMoney: 0
+        };
+        var buffs = new _Buff__WEBPACK_IMPORTED_MODULE_0__["Buffs"]();
+        buffs.Policy = globalBuffs.Policy;
+        buffs.Photo = globalBuffs.Photo;
+        buffs.Quest = globalBuffs.Quest;
+        temp.forEach(function (t) {
+          buffs.addBuilding(t);
+        });
+        temp.forEach(function (t) {
+          var sumMultiple = t.sumMultiple(buffs);
+          var sumMoney = t.sumMoney(sumMultiple);
+          addition.online += sumMoney[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online];
+          addition.offline += sumMoney[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline];
+          addition.buildings.push({
+            online: sumMoney[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online],
+            offline: sumMoney[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline],
+            multiple: sumMultiple,
+            toLevel: t.level,
+            toOnline: sumMoney[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online],
+            tooltip: "",
+            building: t
+          });
+        });
+        addition.supply = Math.round(buffs.supplyBuff * 100);
+        addition.toTps = addition.online;
+        var tps = addition.online;
+
+        while (tps < config.upgradeRecommend.value) {
+          //按优先度升级，并返回增加的tps，并将tps加上对应的数值
+          var u = upgrade(addition.buildings);
+
+          if (u.addMoney === 0) {
+            break;
+          }
+
+          tps += u.addMoney;
+          u.building.toOnline += u.addMoney;
+          addition.toTps += u.addMoney;
+          addition.useMoney += u.cost;
+        }
+
+        if (useMoney === addition.useMoney) {
+          if (bestTps < tps) {
+            useMoney = addition.useMoney;
+            bestTps = tps;
+            tempResult.money = addition.online;
+            tempResult.addition = addition;
+          }
+        } else if (useMoney === -1 || addition.useMoney < useMoney) {
+          useMoney = addition.useMoney;
+          bestTps = tps;
+          tempResult.money = addition.online;
+          tempResult.addition = addition;
+        }
+      });
+    });
+  });
+  tempResult.addition.buildings.forEach(function (building) {
+    building.online = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(building.online);
+    building.offline = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(building.offline);
+    building.toOnline = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(building.toOnline);
+
+    if (building.toLevel === building.building.level) {
+      building.toLevel = "-";
+    } else {
+      building.tooltip = "该组合和当前buff下，该建筑升级到" + building.toLevel + "级时的在线收入为" + building.toOnline + "/秒";
     }
   });
-  postMessage({
-    mode: "result",
-    result: [{
-      title: "在线金币优先策略",
-      addition: result.onlineMoney.addition
-    }, {
-      title: "供货优先、金币次之策略",
-      addition: result.supplyMoney.addition
-    }, {
-      title: "供货优先、橙卡次之、紫卡再次之策略",
-      addition: result.supplyRarity.addition
-    }, {
-      title: "供货优先、橙卡次之、金币再次之策略",
-      addition: result.supplyLegendaryMoney.addition
-    }, {
-      title: "离线金币优先策略",
-      addition: result.offlineMoney.addition
-    }]
-  });
-  postMessage("done");
+  tempResult.addition.toTps = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(tempResult.addition.toTps);
+  tempResult.addition.useMoney = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(tempResult.addition.useMoney);
+  tempResult.addition.online = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(tempResult.addition.online);
+  tempResult.addition.offline = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(tempResult.addition.offline);
+  return [tempResult];
 }
 
-function upgradeBenefit(online, building, buffs) {
-  if (building.level < 2000) {
-    building.level += 1;
+function upgrade(buildings) {
+  var benefit = 0;
+  var building;
+  var levelData;
+  buildings.forEach(function (b) {
+    if (b.toLevel >= 2000) {
+      return;
+    }
+
+    var ld = Object(_Level__WEBPACK_IMPORTED_MODULE_32__["getData"])(b.toLevel, b.building.rarity);
+    var ben = ld.benefit * b.multiple[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online];
+
+    if (ben > benefit) {
+      benefit = ben;
+      building = b;
+      levelData = ld;
+    }
+  });
+
+  if (benefit > 0 && building && levelData) {
+    building.toLevel += 1;
+    return {
+      addMoney: levelData.addMoney * building.multiple[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online],
+      cost: levelData.cost,
+      building: building
+    };
   } else {
     return {
-      online: online,
-      benefit: 0
+      addMoney: 0,
+      cost: 0,
+      building: null
     };
   }
-
-  var cost = Object(_Level__WEBPACK_IMPORTED_MODULE_32__["getCost"])(building.level, building.rarity);
-  var addition = building.calculation(buffs);
-  var addOnline = addition[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online] - online;
-
-  if (addOnline === 0) {
-    return {
-      online: addition[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online],
-      benefit: 0
-    };
-  }
-
-  return {
-    online: addition[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online],
-    benefit: addOnline / cost
-  };
-}
+} // function upgradeBenefit(online,building,buffs) {
+//     if (building.level<2000){
+//         building.level += 1;
+//     }else {
+//         return {
+//             online: online,
+//             benefit: 0
+//         };
+//     }
+//     let cost = getCost(building.level,building.rarity);
+//
+//     let addition = building.calculation(buffs);
+//     let addOnline = addition[BuffRange.Online] - online;
+//     if (addOnline===0){
+//         return {
+//             online: addition[BuffRange.Online],
+//             benefit: 0
+//         };
+//     }
+//     return {
+//         online:addition[BuffRange.Online],
+//         benefit:addOnline/cost
+//     };
+// }
 
 /***/ })
 
