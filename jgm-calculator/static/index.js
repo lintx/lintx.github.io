@@ -404,24 +404,6 @@ function () {
   }
 
   _createClass(Building, [{
-    key: "calculation",
-    value: function calculation(buffs) {
-      var _this = this;
-
-      //即将废除
-      var addition = {};
-      var money = this.money;
-      addition[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online] = money;
-      addition[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline] = money / 2;
-      [_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Building, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Policy, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Photo, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Quest].forEach(function (source) {
-        var buff = buffs.Calculation(source, _this);
-        Object.keys(buff).forEach(function (range) {
-          addition[range] *= buff[range];
-        });
-      });
-      return addition;
-    }
-  }, {
     key: "sumMoney",
     value: function sumMoney(multiple) {
       var income = Object(_Level__WEBPACK_IMPORTED_MODULE_1__["getIncome"])(this.level);
@@ -433,14 +415,14 @@ function () {
   }, {
     key: "sumMultiple",
     value: function sumMultiple(buffs) {
-      var _this2 = this;
+      var _this = this;
 
       var m = this.baseMoney * this.multiple;
       var multiple = {};
       multiple[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online] = m;
       multiple[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline] = m / 2;
       [_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Building, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Policy, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Photo, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Quest].forEach(function (source) {
-        var buff = buffs.Calculation(source, _this2);
+        var buff = buffs.Calculation(source, _this);
         Object.keys(buff).forEach(function (range) {
           multiple[range] *= buff[range];
         });
@@ -455,7 +437,7 @@ function () {
   }, {
     key: "tooltip",
     get: function get() {
-      var _this3 = this;
+      var _this2 = this;
 
       if (this.star === 0) {
         return "";
@@ -466,7 +448,7 @@ function () {
       tooltip.push(Array(this.star + 1).join("★"));
       tooltip.push("等级 " + this.level);
       this.buffs.forEach(function (buff) {
-        tooltip.push(buff.target + "的收入增加 " + Math.round(_this3.getBuffValue(buff) * 100) + "%");
+        tooltip.push(buff.target + "的收入增加 " + Math.round(_this2.getBuffValue(buff) * 100) + "%");
       });
       tooltip.push("基础收益：" + this.baseMoney + "*" + this.multiple + "*" + Object(_Utils__WEBPACK_IMPORTED_MODULE_2__["renderSize"])(Object(_Level__WEBPACK_IMPORTED_MODULE_1__["getIncome"])(this.level)) + "=" + Object(_Utils__WEBPACK_IMPORTED_MODULE_2__["renderSize"])(this.money));
       return tooltip.join("<br />");
@@ -474,7 +456,6 @@ function () {
   }, {
     key: "money",
     get: function get() {
-      //即将废除
       return this.baseMoney * this.multiple * Object(_Level__WEBPACK_IMPORTED_MODULE_1__["getIncome"])(this.level); //这里需要按等级计算，这是基础金钱收益
     }
   }, {
@@ -14531,7 +14512,11 @@ unitArr.forEach(function (v) {
 });
 
 function renderSize(value) {
-  if (null === value || value === '' || value === 0) {
+  if (value === 0) {
+    return 0;
+  }
+
+  if (null === value || value === '') {
     return "0";
   }
 
@@ -14732,7 +14717,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 
 var storage_key = "lintx-jgm-calculator-config";
 var worker = undefined;
-var version = "0.14";
+var version = "0.15";
 vue__WEBPACK_IMPORTED_MODULE_0__["default"].use(bootstrap_vue__WEBPACK_IMPORTED_MODULE_33__["default"]);
 vue__WEBPACK_IMPORTED_MODULE_0__["default"].use(portal_vue__WEBPACK_IMPORTED_MODULE_34___default.a);
 var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
@@ -14876,6 +14861,71 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
     }
 
     return data;
+  },
+  computed: {
+    // 计算属性的 getter
+    donePolicyTooltip: function donePolicyTooltip() {
+      if (this.policy.step <= 1) {
+        return "";
+      } // `this` 指向 vm 实例
+      //全局的buff
+
+
+      var globalBuffs = new _Buff__WEBPACK_IMPORTED_MODULE_32__["Buffs"](); //添加政策buff
+
+      for (var i = 1; i < this.policy.step; i++) {
+        Object(_Policy__WEBPACK_IMPORTED_MODULE_37__["getPolicy"])(i).policys.forEach(function (p) {
+          globalBuffs.add(_Buff__WEBPACK_IMPORTED_MODULE_32__["BuffSource"].Policy, p.buff(5));
+        });
+      }
+
+      var buffs = {};
+      Object.keys(_Buff__WEBPACK_IMPORTED_MODULE_32__["BuffRange"]).forEach(function (rkey) {
+        var range = _Buff__WEBPACK_IMPORTED_MODULE_32__["BuffRange"][rkey];
+
+        if (range === _Buff__WEBPACK_IMPORTED_MODULE_32__["BuffRange"].Targets) {
+          return;
+        }
+
+        buffs[range] = 0;
+      });
+      globalBuffs.Policy.forEach(function (buff) {
+        buffs[buff.range] += buff.buff * 100;
+      });
+      var title = "";
+
+      if (this.policy.step === 2) {
+        title = "第 1 阶段政策总加成:";
+      } else {
+        title = "第 1 至第 " + (this.policy.step - 1) + " 阶段政策总加成:";
+      }
+
+      var tempArr = [title];
+      Object.keys(buffs).forEach(function (name) {
+        tempArr.push(name + ":" + buffs[name] + "%");
+      });
+      return tempArr.join('<br />');
+    },
+    currentPolicyTooltip: function currentPolicyTooltip() {
+      var policys = Object(_Policy__WEBPACK_IMPORTED_MODULE_37__["getPolicy"])(this.policy.step).policys;
+      var policyObj = {};
+      policys.forEach(function (policy) {
+        var b = {
+          0: ""
+        };
+        policy.policyLevels.forEach(function (l) {
+          b[l.level] = l.buff.target + ":" + l.buff.buff + "%";
+        });
+        policyObj[policy.title] = b;
+      });
+      return function (level) {
+        if (level.level > 0) {
+          return level.level + " 级 " + level.title + "政策加成:<br />" + policyObj[level.title][level.level];
+        } else {
+          return "";
+        }
+      };
+    }
   },
   methods: {
     calculation: function calculation() {

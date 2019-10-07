@@ -324,24 +324,6 @@ function () {
   }
 
   _createClass(Building, [{
-    key: "calculation",
-    value: function calculation(buffs) {
-      var _this = this;
-
-      //即将废除
-      var addition = {};
-      var money = this.money;
-      addition[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online] = money;
-      addition[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline] = money / 2;
-      [_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Building, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Policy, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Photo, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Quest].forEach(function (source) {
-        var buff = buffs.Calculation(source, _this);
-        Object.keys(buff).forEach(function (range) {
-          addition[range] *= buff[range];
-        });
-      });
-      return addition;
-    }
-  }, {
     key: "sumMoney",
     value: function sumMoney(multiple) {
       var income = Object(_Level__WEBPACK_IMPORTED_MODULE_1__["getIncome"])(this.level);
@@ -353,14 +335,14 @@ function () {
   }, {
     key: "sumMultiple",
     value: function sumMultiple(buffs) {
-      var _this2 = this;
+      var _this = this;
 
       var m = this.baseMoney * this.multiple;
       var multiple = {};
       multiple[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online] = m;
       multiple[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline] = m / 2;
       [_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Building, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Policy, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Photo, _Buff__WEBPACK_IMPORTED_MODULE_0__["BuffSource"].Quest].forEach(function (source) {
-        var buff = buffs.Calculation(source, _this2);
+        var buff = buffs.Calculation(source, _this);
         Object.keys(buff).forEach(function (range) {
           multiple[range] *= buff[range];
         });
@@ -375,7 +357,7 @@ function () {
   }, {
     key: "tooltip",
     get: function get() {
-      var _this3 = this;
+      var _this2 = this;
 
       if (this.star === 0) {
         return "";
@@ -386,7 +368,7 @@ function () {
       tooltip.push(Array(this.star + 1).join("★"));
       tooltip.push("等级 " + this.level);
       this.buffs.forEach(function (buff) {
-        tooltip.push(buff.target + "的收入增加 " + Math.round(_this3.getBuffValue(buff) * 100) + "%");
+        tooltip.push(buff.target + "的收入增加 " + Math.round(_this2.getBuffValue(buff) * 100) + "%");
       });
       tooltip.push("基础收益：" + this.baseMoney + "*" + this.multiple + "*" + Object(_Utils__WEBPACK_IMPORTED_MODULE_2__["renderSize"])(Object(_Level__WEBPACK_IMPORTED_MODULE_1__["getIncome"])(this.level)) + "=" + Object(_Utils__WEBPACK_IMPORTED_MODULE_2__["renderSize"])(this.money));
       return tooltip.join("<br />");
@@ -394,7 +376,6 @@ function () {
   }, {
     key: "money",
     get: function get() {
-      //即将废除
       return this.baseMoney * this.multiple * Object(_Level__WEBPACK_IMPORTED_MODULE_1__["getIncome"])(this.level); //这里需要按等级计算，这是基础金钱收益
     }
   }, {
@@ -14451,7 +14432,11 @@ unitArr.forEach(function (v) {
 });
 
 function renderSize(value) {
-  if (null === value || value === '' || value === 0) {
+  if (value === 0) {
+    return 0;
+  }
+
+  if (null === value || value === '') {
     return "0";
   }
 
@@ -14825,7 +14810,9 @@ function calculationType1(list, policy, buff, config) {
           supply: 0,
           buildings: [],
           toTps: 0,
-          useMoney: 0
+          useMoney: 0,
+          needTime: 0,
+          maxNeedTime: 0
         };
         var buffs = new _Buff__WEBPACK_IMPORTED_MODULE_0__["Buffs"]();
         buffs.Policy = globalBuffs.Policy;
@@ -14849,7 +14836,9 @@ function calculationType1(list, policy, buff, config) {
           addition.offline += sumMoney[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline];
           addition.buildings.push({
             online: sumMoney[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online],
+            onlineTooltip: "",
             offline: sumMoney[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline],
+            offlineTooltip: "",
             multiple: sumMultiple,
             toLevel: t.level,
             toOnline: sumMoney[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online],
@@ -15007,9 +14996,7 @@ function calculationType1(list, policy, buff, config) {
         program.addition.useMoney += _u.cost;
       }
     } else if (config.upgradeRecommend.mode === 3) {
-      var tps = program.addition.online;
-
-      while (tps < config.upgradeRecommend.value) {
+      while (program.addition.toTps < config.upgradeRecommend.value) {
         //按优先度升级，并返回增加的tps，并将tps加上对应的数值
         var _u2 = upgrade(program.addition.buildings);
 
@@ -15017,14 +15004,16 @@ function calculationType1(list, policy, buff, config) {
           break;
         }
 
-        tps += _u2.addMoney;
         _u2.building.toOnline += _u2.addMoney;
+        program.addition.needTime += _u2.cost / program.addition.toTps;
         program.addition.toTps += _u2.addMoney;
         program.addition.useMoney += _u2.cost;
       }
     }
 
     program.addition.buildings.forEach(function (building) {
+      building.onlineTooltip = "建筑在线收益倍数:" + (building.multiple[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online] / building.building.baseMoney / building.building.multiple).toFixed(2);
+      building.offlineTooltip = "建筑离线收益倍数:" + (building.multiple[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline] / building.building.baseMoney / building.building.multiple).toFixed(2);
       building.online = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(building.online);
       building.offline = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(building.offline);
       building.toOnline = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(building.toOnline);
@@ -15035,6 +15024,8 @@ function calculationType1(list, policy, buff, config) {
         building.tooltip = "该组合和当前buff下，该建筑升级到" + building.toLevel + "级时的在线收入为" + building.toOnline + "/秒";
       }
     });
+    program.addition.needTime = formatSeconds(program.addition.needTime);
+    program.addition.maxNeedTime = formatSeconds(program.addition.useMoney / program.addition.online);
     program.addition.toTps = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(program.addition.toTps);
     program.addition.useMoney = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(program.addition.useMoney);
     program.addition.online = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(program.addition.online);
@@ -15079,7 +15070,9 @@ function calculationType2(list, policy, buff, config) {
           supply: 0,
           buildings: [],
           toTps: 0,
-          useMoney: 0
+          useMoney: 0,
+          needTime: 0,
+          maxNeedTime: 0
         };
         var buffs = new _Buff__WEBPACK_IMPORTED_MODULE_0__["Buffs"]();
         buffs.Policy = globalBuffs.Policy;
@@ -15095,7 +15088,9 @@ function calculationType2(list, policy, buff, config) {
           addition.offline += sumMoney[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline];
           addition.buildings.push({
             online: sumMoney[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online],
+            onlineTooltip: "",
             offline: sumMoney[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline],
+            offlineTooltip: "",
             multiple: sumMultiple,
             toLevel: t.level,
             toOnline: sumMoney[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online],
@@ -15105,9 +15100,8 @@ function calculationType2(list, policy, buff, config) {
         });
         addition.supply = Math.round(buffs.supplyBuff * 100);
         addition.toTps = addition.online;
-        var tps = addition.online;
 
-        while (tps < config.upgradeRecommend.value) {
+        while (addition.toTps < config.upgradeRecommend.value) {
           //按优先度升级，并返回增加的tps，并将tps加上对应的数值
           var u = upgrade(addition.buildings);
 
@@ -15115,22 +15109,22 @@ function calculationType2(list, policy, buff, config) {
             break;
           }
 
-          tps += u.addMoney;
           u.building.toOnline += u.addMoney;
+          addition.needTime += u.cost / addition.toTps;
           addition.toTps += u.addMoney;
           addition.useMoney += u.cost;
         }
 
         if (useMoney === addition.useMoney) {
-          if (bestTps < tps) {
+          if (bestTps < addition.toTps) {
             useMoney = addition.useMoney;
-            bestTps = tps;
+            bestTps = addition.toTps;
             tempResult.money = addition.online;
             tempResult.addition = addition;
           }
         } else if (useMoney === -1 || addition.useMoney < useMoney) {
           useMoney = addition.useMoney;
-          bestTps = tps;
+          bestTps = addition.toTps;
           tempResult.money = addition.online;
           tempResult.addition = addition;
         }
@@ -15138,6 +15132,8 @@ function calculationType2(list, policy, buff, config) {
     });
   });
   tempResult.addition.buildings.forEach(function (building) {
+    building.onlineTooltip = "建筑在线收益倍数:" + (building.multiple[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Online] / building.building.baseMoney / building.building.multiple).toFixed(2);
+    building.offlineTooltip = "建筑离线收益倍数:" + (building.multiple[_Buff__WEBPACK_IMPORTED_MODULE_0__["BuffRange"].Offline] / building.building.baseMoney / building.building.multiple).toFixed(2);
     building.online = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(building.online);
     building.offline = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(building.offline);
     building.toOnline = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(building.toOnline);
@@ -15148,6 +15144,8 @@ function calculationType2(list, policy, buff, config) {
       building.tooltip = "该组合和当前buff下，该建筑升级到" + building.toLevel + "级时的在线收入为" + building.toOnline + "/秒";
     }
   });
+  tempResult.addition.needTime = formatSeconds(tempResult.addition.needTime);
+  tempResult.addition.maxNeedTime = formatSeconds(tempResult.addition.useMoney / tempResult.addition.online);
   tempResult.addition.toTps = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(tempResult.addition.toTps);
   tempResult.addition.useMoney = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(tempResult.addition.useMoney);
   tempResult.addition.online = Object(_Utils__WEBPACK_IMPORTED_MODULE_33__["renderSize"])(tempResult.addition.online);
@@ -15188,30 +15186,57 @@ function upgrade(buildings) {
       building: null
     };
   }
-} // function upgradeBenefit(online,building,buffs) {
-//     if (building.level<2000){
-//         building.level += 1;
-//     }else {
-//         return {
-//             online: online,
-//             benefit: 0
-//         };
-//     }
-//     let cost = getCost(building.level,building.rarity);
-//
-//     let addition = building.calculation(buffs);
-//     let addOnline = addition[BuffRange.Online] - online;
-//     if (addOnline===0){
-//         return {
-//             online: addition[BuffRange.Online],
-//             benefit: 0
-//         };
-//     }
-//     return {
-//         online:addition[BuffRange.Online],
-//         benefit:addOnline/cost
-//     };
-// }
+}
+
+function formatSeconds(second) {
+  if (second === 0 || second === Infinity) {
+    return 0;
+  }
+
+  second = Math.ceil(second); // second = parseInt(second);// 需要转换的时间秒
+
+  var minute = 0; // 分
+
+  var hour = 0; // 小时
+
+  var day = 0; // 天
+
+  if (second >= 60) {
+    minute = Math.floor(second / 60);
+    second = second % 60;
+
+    if (minute >= 60) {
+      hour = Math.floor(minute / 60);
+      minute = minute % 60;
+
+      if (hour >= 24) {
+        //大于24小时
+        day = Math.floor(hour / 24);
+        hour = hour % 24;
+      }
+    }
+  }
+
+  var result = '';
+
+  if (day > 0) {
+    result += day + "天";
+  }
+
+  if (hour > 0) {
+    result += hour + "小时";
+  }
+
+  if (minute > 0) {
+    result += minute + "分";
+  }
+
+  if (second > 0) {
+    result += second + "秒";
+  }
+
+  return result;
+}
 
 /***/ })
 
