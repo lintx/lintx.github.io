@@ -14717,7 +14717,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 
 var storage_key = "lintx-jgm-calculator-config";
 var worker = undefined;
-var version = "0.15";
+var version = "0.16";
 vue__WEBPACK_IMPORTED_MODULE_0__["default"].use(bootstrap_vue__WEBPACK_IMPORTED_MODULE_33__["default"]);
 vue__WEBPACK_IMPORTED_MODULE_0__["default"].use(portal_vue__WEBPACK_IMPORTED_MODULE_34___default.a);
 var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
@@ -14751,6 +14751,10 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
       },
       selectConfigIndex: 0,
       localConfigList: [],
+      buildingProgram: {
+        current: -1,
+        programs: []
+      },
       buildings: [{
         type: _Building__WEBPACK_IMPORTED_MODULE_1__["BuildingType"].Residence,
         list: [new _Builds_Chalet__WEBPACK_IMPORTED_MODULE_2__["default"](), new _Builds_SteelStructureHouse__WEBPACK_IMPORTED_MODULE_3__["default"](), new _Builds_Bungalow__WEBPACK_IMPORTED_MODULE_4__["default"](), new _Builds_SmallApartment__WEBPACK_IMPORTED_MODULE_5__["default"](), new _Builds_Residential__WEBPACK_IMPORTED_MODULE_6__["default"](), new _Builds_TalentApartment__WEBPACK_IMPORTED_MODULE_7__["default"](), new _Builds_GardenHouse__WEBPACK_IMPORTED_MODULE_8__["default"](), new _Builds_ChineseSmallBuilding__WEBPACK_IMPORTED_MODULE_9__["default"](), new _Builds_SkyVilla__WEBPACK_IMPORTED_MODULE_10__["default"](), new _Builds_RevivalMansion__WEBPACK_IMPORTED_MODULE_11__["default"]()]
@@ -15438,11 +15442,7 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
 
           _this7.buildings.forEach(function (b) {
             b.list.forEach(function (item) {
-              if (bs.indexOf(item) === -1) {
-                item.disabled = true;
-              } else {
-                item.disabled = false;
-              }
+              item.disabled = bs.indexOf(item) === -1;
             });
           });
 
@@ -15573,6 +15573,161 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
           });
         }
       });
+    },
+    switchBuildingProgram: function switchBuildingProgram() {
+      if (this.buildingProgram.current >= 0 && this.buildingProgram.programs.length > 0) {
+        var bps = this.buildingProgram.programs[this.buildingProgram.current].inUse;
+
+        if (Array.isArray(bps)) {
+          this.buildings.forEach(function (b) {
+            b.list.forEach(function (item) {
+              item.disabled = bps.indexOf(item.BuildingName) === -1;
+            });
+          });
+          this.$bvToast.toast('切换方案成功', {
+            title: '提示',
+            variant: 'success',
+            //danger,warning,info,primary,secondary,default
+            solid: true
+          });
+          return;
+        }
+      }
+
+      this.$bvToast.toast('方案数据错误，无法切换', {
+        title: '提示',
+        variant: 'danger',
+        //danger,warning,info,primary,secondary,default
+        solid: true
+      });
+    },
+    buildingProgramSave: function buildingProgramSave() {
+      this.buildingProgramInit();
+
+      if (this.buildingProgram.programs.length <= 0) {
+        this.buildingProgram.programs.push({
+          title: "",
+          inUse: []
+        });
+        this.buildingProgram.current = 0;
+      }
+
+      this.buildingProgram.programs[this.buildingProgram.current].inUse = [];
+      var bps = this.buildingProgram.programs[this.buildingProgram.current].inUse;
+      this.buildings.forEach(function (b) {
+        b.list.forEach(function (item) {
+          if (!item.disabled) {
+            bps.push(item.BuildingName);
+          }
+        });
+      });
+      this.$bvToast.toast('方案保存成功', {
+        title: '提示',
+        variant: 'success',
+        //danger,warning,info,primary,secondary,default
+        solid: true
+      });
+    },
+    buildingProgramSaveTo: function buildingProgramSaveTo() {
+      this.buildingProgramInit();
+      var bps = [];
+      this.buildings.forEach(function (b) {
+        b.list.forEach(function (item) {
+          if (!item.disabled) {
+            bps.push(item.BuildingName);
+          }
+        });
+      });
+      this.buildingProgram.programs.push({
+        title: "",
+        inUse: bps
+      });
+      this.$bvToast.toast('方案保存成功', {
+        title: '提示',
+        variant: 'success',
+        //danger,warning,info,primary,secondary,default
+        solid: true
+      });
+    },
+    buildingProgramRemove: function buildingProgramRemove() {
+      var _this9 = this;
+
+      this.$bvModal.msgBoxConfirm('是否要删除当前方案？删除后如果没有保存配置，刷新页面后即可恢复。', {
+        title: '请确认',
+        size: 'sm',
+        buttonSize: 'sm',
+        okVariant: 'danger',
+        okTitle: '确认',
+        cancelTitle: '取消',
+        footerClass: 'p-2',
+        hideHeaderClose: false,
+        centered: true
+      }).then(function (value) {
+        if (value) {
+          _this9.buildingProgramInit();
+
+          if (_this9.buildingProgram.programs.length > 0) {
+            _this9.buildingProgram.programs.splice(_this9.buildingProgram.current, 1);
+
+            if (_this9.buildingProgram.programs.length === 0) {
+              _this9.buildingProgram.current = -1;
+            } else {
+              if (_this9.buildingProgram.current > 0) {
+                _this9.buildingProgram.current -= 1;
+              }
+            }
+          }
+
+          _this9.switchBuildingProgram();
+
+          _this9.$bvToast.toast('方案已删除', {
+            title: '提示',
+            variant: 'success',
+            //danger,warning,info,primary,secondary,default
+            solid: true
+          });
+        }
+      });
+    },
+    buildingProgramClear: function buildingProgramClear() {
+      var _this10 = this;
+
+      this.$bvModal.msgBoxConfirm('是否要删除所有方案？删除后如果没有保存配置，刷新页面后即可恢复。', {
+        title: '请确认',
+        size: 'sm',
+        buttonSize: 'sm',
+        okVariant: 'danger',
+        okTitle: '确认',
+        cancelTitle: '取消',
+        footerClass: 'p-2',
+        hideHeaderClose: false,
+        centered: true
+      }).then(function (value) {
+        if (value) {
+          _this10.buildingProgramInit();
+
+          _this10.buildingProgram = {
+            current: -1,
+            programs: []
+          };
+
+          _this10.$bvToast.toast('方案已全部删除', {
+            title: '提示',
+            variant: 'success',
+            //danger,warning,info,primary,secondary,default
+            solid: true
+          });
+        }
+      });
+    },
+    buildingProgramInit: function buildingProgramInit() {
+      this.buildingProgram.current = Math.max(this.buildingProgram.current, 0);
+
+      if (!Array.isArray(this.buildingProgram.programs)) {
+        this.buildingProgram.programs = [];
+      }
+
+      this.buildingProgram.current = Math.min(this.buildingProgram.current, this.buildingProgram.programs.length - 1);
     }
   }
 });
