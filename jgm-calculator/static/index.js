@@ -14717,7 +14717,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 
 var storage_key = "lintx-jgm-calculator-config";
 var worker = undefined;
-var version = "0.16";
+var version = "0.17";
 vue__WEBPACK_IMPORTED_MODULE_0__["default"].use(bootstrap_vue__WEBPACK_IMPORTED_MODULE_33__["default"]);
 vue__WEBPACK_IMPORTED_MODULE_0__["default"].use(portal_vue__WEBPACK_IMPORTED_MODULE_34___default.a);
 var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
@@ -14857,6 +14857,10 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
 
       if (config.hasOwnProperty("policy")) {
         Object.assign(data.policy, config.policy);
+      }
+
+      if (config.hasOwnProperty("buildingProgram")) {
+        Object.assign(data.buildingProgram, config.buildingProgram);
       }
     }
 
@@ -15004,7 +15008,8 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
         building: [],
         buff: [],
         config: this.config,
-        policy: this.policy
+        policy: this.policy,
+        buildingProgram: this.buildingProgram
       };
       this.buildings.forEach(function (cls) {
         cls.list.forEach(function (item) {
