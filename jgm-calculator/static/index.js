@@ -14732,7 +14732,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 
 var storage_key = "lintx-jgm-calculator-config";
 var worker = undefined;
-var version = "0.13";
+var version = "0.14";
 vue__WEBPACK_IMPORTED_MODULE_0__["default"].use(bootstrap_vue__WEBPACK_IMPORTED_MODULE_33__["default"]);
 vue__WEBPACK_IMPORTED_MODULE_0__["default"].use(portal_vue__WEBPACK_IMPORTED_MODULE_34___default.a);
 var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
@@ -15332,7 +15332,7 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
     clearQuestData: function clearQuestData() {
       var _this6 = this;
 
-      this.$bvModal.msgBoxConfirm('是否要把城市任务加成清空？清空后如果没有保存配置，刷新后即可恢复。', {
+      this.$bvModal.msgBoxConfirm('是否要把城市任务加成清空？清空后如果没有保存配置，刷新页面后即可恢复。', {
         title: '请确认',
         size: 'sm',
         buttonSize: 'sm',
@@ -15369,7 +15369,7 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
     selectProgram: function selectProgram(buildings) {
       var _this7 = this;
 
-      this.$bvModal.msgBoxConfirm('是否要把除了当前方案中的建筑之外的所有建筑都禁用？应用后如果没有保存配置，刷新后即可恢复。', {
+      this.$bvModal.msgBoxConfirm('是否要把除了当前方案中的建筑之外的所有建筑都禁用？应用后如果没有保存配置，刷新页面后即可恢复。', {
         title: '请确认',
         size: 'sm',
         buttonSize: 'sm',
@@ -15397,6 +15397,125 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_0__["default"]({
           });
 
           _this7.$bvToast.toast('应用成功', {
+            title: '提示',
+            variant: 'success',
+            //danger,warning,info,primary,secondary,default
+            solid: true
+          });
+        }
+      });
+    },
+    syncProgramLevel: function syncProgramLevel(buildings) {
+      var _this8 = this;
+
+      var data = [];
+      var clearMoney = false;
+      buildings.forEach(function (building) {
+        if (building.toLevel !== "-") {
+          data.push({
+            select: true,
+            level: building.toLevel,
+            building: building.building
+          });
+        }
+      });
+      var h = this.$createElement;
+      var tr = [];
+      data.forEach(function (item) {
+        tr.push(h('tr', {}, [h('td', {
+          "class": ['text-center']
+        }, [h('input', {
+          attrs: {
+            type: 'checkbox',
+            checked: 'checked'
+          },
+          on: {
+            input: function input(e) {
+              item.select = e.target.checked;
+            }
+          }
+        }, [])]), h('td', {
+          "class": ['text-center', 'text-nowrap']
+        }, [item.building.BuildingName]), h('td', {
+          "class": ['text-center']
+        }, [h('input', {
+          attrs: {
+            type: 'number',
+            value: item.level
+          },
+          "class": ['form-control', 'text-right', 'form-control-sm', 'calculator-level'],
+          on: {
+            input: function input(e) {
+              item.level = getValidLevel(e.target.value);
+            },
+            focus: function focus(e) {
+              e.target.select();
+            }
+          }
+        }, [])])]));
+      });
+      var table = h('table', {
+        "class": ['table', 'table-bordered', 'table-sm']
+      }, [h('thead', {}, [h('tr', {}, [h('th', {
+        "class": ['text-center', 'text-nowrap']
+      }, ['同步']), h('th', {
+        "class": ['text-center', 'text-nowrap']
+      }, ['建筑']), h('th', {
+        "class": ['text-center']
+      }, ['等级'])])]), h('tbody', {}, tr)]);
+      var content = [h('p', {}, ['将本方案的推荐等级同步到设置中，应用后如果没有保存配置，刷新页面后即可恢复。'])];
+
+      if (this.config.upgradeRecommend.mode === 2) {
+        clearMoney = true;
+        content.push(h('div', {
+          "class": ['form-check', 'mb-2']
+        }, [h('input', {
+          "class": 'form-check-input',
+          on: {
+            change: function change(e) {
+              clearMoney = e.target.checked;
+            }
+          },
+          attrs: {
+            type: 'checkbox',
+            checked: 'checked',
+            id: 'syncProgramLevelClearMoneyCheck'
+          }
+        }, []), h('label', {
+          "class": 'form-check-label',
+          attrs: {
+            "for": 'syncProgramLevelClearMoneyCheck'
+          }
+        }, ['清空剩余金币'])]));
+      }
+
+      content.push(table);
+      var messageVNode = h('div', {
+        "class": ['foobar']
+      }, content);
+      this.$bvModal.msgBoxConfirm(messageVNode, {
+        title: '应用等级',
+        size: 'sm',
+        buttonSize: 'sm',
+        okVariant: 'success',
+        okTitle: '确认',
+        cancelTitle: '取消',
+        footerClass: 'p-2',
+        hideHeaderClose: false,
+        centered: true
+      }).then(function (value) {
+        if (value) {
+          if (clearMoney) {
+            _this8.config.upgradeRecommend.value = "";
+          }
+
+          data.forEach(function (item) {
+            if (item.select) {
+              item.building.level = item.level;
+            }
+          });
+
+          _this8.$bvToast.toast('同步成功', {
             title: '提示',
             variant: 'success',
             //danger,warning,info,primary,secondary,default
