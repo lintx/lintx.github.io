@@ -92,7 +92,7 @@
 
 然后下载安装脚本`https://raw.githubusercontent.com/docker/compose-cli/main/scripts/install/install_linux.sh`，
 
-打开安装脚本，找到`$sh_c "${download_cmd} ${download_dir}/docker ${DOWNLOAD_URL}"`，注释掉，并增加一行`$sh_c "cp ./docker-compose-linux-amd64 ${download_dir}/docker"`这样就不会尝试从github下载二进制人间，而是直接使用已经下载好的二进制文件了
+打开安装脚本，找到`$sh_c "${download_cmd} ${download_dir}/docker ${DOWNLOAD_URL}"`，注释掉，并增加一行`$sh_c "cp ./docker-compose-linux-amd64 ${download_dir}/docker"`这样就不会尝试从github下载二进制文件，而是直接使用已经下载好的二进制文件了
 
 将`install_lunux.sh`和`docker-compose-linux-amd64`文件上传到服务器上的`/data/tools/docker-compose`目录下，进入该目录，运行`./install_lunux.sh`进行安装
 
