@@ -503,6 +503,39 @@ jenkins左侧-`Manage Jenkins/系统管理`-`Manage Plugins/插件管理`-`Advan
 
 ### 八、创建测试go项目，并进行持续集成测试
 
+###### 创建基础镜像
+
+由于`scratch`、`alpine`、`busybox`等小型镜像都不含根证书，会导致使用这些小型镜像无法进行证书校验，也就无法进行https请求等，同时这些镜像的时区都是默认的格林威治时，所以我们自定义一个镜像，并上传到我们的私有库，之后我们的项目以这个自定义的镜像作为基础镜像，会更方便。
+
+首先我们将本机的上海时区文件和根证书复制到当前目录：
+
+```shell
+cp -p /usr/share/zoneinfo/Asia/Shanghai .
+cp -p /etc/ssl/certs/ca-certificates.crt .
+```
+
+然后创建`Dockerfile`文件：
+
+```dockerfile
+FROM scratch
+  
+COPY Shanghai /etc/localtime
+COPY ca-certificates.crt /etc/ssl/certs/
+```
+
+然后我们编译镜像、上传到私有库：
+
+```shell
+com.docker.cli build --tag harbor.example.com/example/scratch:v1 --tag harbor.example.com/example/scratch:latest .
+com.docker.cli login harbor.example.com
+com.docker.cli push --all-tags harbor.example.com/example/scratch
+com.docker.cli logout harbor.example.com
+```
+
+> 参考：https://juejin.cn/post/6844904174396637197
+
+
+
 ###### 本地创建项目
 
 创建一个go项目`example`，在该项目下创建文件夹`build`，在`build`文件夹下创建`docker-compose.yml`文件以使用docker部署该go项目：
@@ -519,10 +552,10 @@ services:
     network_mode: "host"
 ```
 
-创建`Dockerfile`文件以编译docker镜像：
+创建`Dockerfile`文件以编译docker镜像，注意我们使用自定义过的镜像作为基础镜像：
 
 ```dockerfile
-FROM scratch
+FROM harbor.example.com/example/scratch:latest
 
 WORKDIR /app
 COPY example .
