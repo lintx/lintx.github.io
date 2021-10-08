@@ -66,12 +66,13 @@
 
 
 
-###### 更改docker镜像源
+###### 更改docker镜像源并修改docker数据目录
 
 使用命令`vi /etc/docker/daemon.json`并输入以下内容：
 
 ```json
 {
+  "data-root": "/data/docker",
   "registry-mirrors": ["https://docker.mirrors.ustc.edu.cn"]
 }
 ```
