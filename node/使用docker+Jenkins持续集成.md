@@ -335,7 +335,20 @@ services:
 
 最后添加一个机器人账户，并设置好ssl公钥，关于如何创建公钥并使之可以登录到git主机的方法，网上有很多，所以这里不再赘述。
 
-
+>使用另外的nginx转发gitlab的请求时，gitlab默认是http访问，此时部分服务可能出现问题，如在`go-get=1`时提供的网址为http开头，如需修正，可以在`config/gitlab.rb`中增加以下配置：
+>
+>```
+>letsencrypt['enable'] = false
+>external_url 'https://gitlab.example.com'
+>nginx['listen_port'] = 80
+>nginx['listen_https'] = false
+>```
+>
+>第一行的作用是`external_url`为https开头时，默认将开启这个设置，开启时会校验ssl证书，不关闭会因为证书校验失败问题无法启动
+>
+>第三行和第四行的作用是`external_url`为https开头时内置nginx默认监听https的443端口，我们用另外的nginx转发，gitlab内置的nginx其实还是80端口，所以需要设置
+>
+>增加完成后使用命令`docker compose exec gitlab gitlab-ctl reconfigure`应用配置
 
 ###### 数据迁移（可选）
 
