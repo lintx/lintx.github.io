@@ -310,6 +310,7 @@ ssl_prefer_server_ciphers on;
 
 ### 五、安装gitlab
 
+
 创建`docker-compose.yml`文件：
 
 ```yaml
@@ -333,22 +334,90 @@ services:
 
 使用`docker compose up -d`启动`gitlab`
 
-最后添加一个机器人账户，并设置好ssl公钥，关于如何创建公钥并使之可以登录到git主机的方法，网上有很多，所以这里不再赘述。
-
->使用另外的nginx转发gitlab的请求时，gitlab默认是http访问，此时部分服务可能出现问题，如在`go-get=1`时提供的网址为http开头，如需修正，可以在`config/gitlab.rb`中增加以下配置：
->
+>使用另外的nginx转发gitlab的请求时，gitlab默认是http访问，此时部分服务可能出现问题，如在`go-get=1`时提供的网址为http开头，如需修正，可以在`config/gitlab.rb`中增加以下配置：  
 >```
 >letsencrypt['enable'] = false
 >external_url 'https://gitlab.example.com'
 >nginx['listen_port'] = 80
 >nginx['listen_https'] = false
 >```
->
->第一行的作用是`external_url`为https开头时，默认将开启这个设置，开启时会校验ssl证书，不关闭会因为证书校验失败问题无法启动
->
->第三行和第四行的作用是`external_url`为https开头时内置nginx默认监听https的443端口，我们用另外的nginx转发，gitlab内置的nginx其实还是80端口，所以需要设置
->
->增加完成后使用命令`docker compose exec gitlab gitlab-ctl reconfigure`应用配置
+>第一行的作用是`external_url`为https开头时，默认将开启这个设置，开启时会校验ssl证书，不关闭会因为证书校验失败问题无法启动  
+>第三行和第四行的作用是`external_url`为https开头时内置nginx默认监听https的443端口，我们用另外的nginx转发，gitlab内置的nginx其实还是80端口，所以需要设置  
+
+启动好后使用命令`grep 'Password:' ./config/initial_root_password`查看初始密码  
+打开`https://gitlab.example.com`，使用用户名`root`和查看的密码登录
+
+最后添加一个机器人账户，并设置好ssl公钥，关于如何创建公钥并使之可以登录到git主机的方法，网上有很多，所以这里不再赘述。
+
+#### 复用22端口（可选）
+> git所使用的ssh仓库地址，如`git@gitlab.example.com:lintx/xxx.git`，其实就是使用`git`用户登录`gitlab.example.com`  
+> 当我们使用宿主机安装gitlab时，ssh流量会被`git`用户下脚本重定向到gitlab  
+> 而当我们使用docker安装gitlab时，宿主机没有`git`用户,也没有gitlab，所以无法重定向到gitlab  
+> 解决了这个问题，我们就可以将ssh登录的端口和git所使用的端口复用22端口了  
+> 不过实际解决的时候有一个前提条件，那就是宿主机和容器使用同一份`authorized_keys`文件，
+> 这是因为在gitlab网页上添加公钥时，gitlab会将该公钥添加到`authorized_keys`文件中，
+> 这样这份公钥才能在ssh下进行验证。  
+> 但是又不能简单的将`authorized_keys`文件进行软硬链接之类，因为sshd要求其他用户没有`authorized_keys`的写权限才能进行验证，
+> 因为需要让gitlab自动维护该文件，所以容器内的git用户必须有该文件的写权限，而宿主机的git用户uid如果和容器中的uid用户不一致，那么就会有“其他用户”拥有该文件的写权限而导致无法验证。  
+> 解决方法有几种：
+> 1. 在宿主机创建和容器中uid一致的git用户，这可以在创建用户的时候使用`-u`参数指定uid来实现，gitlab中的git用户的uid一般是998，
+     > 宿主机有和容器中uid一致的git用户后，可以使用软硬链接将该文件链接，也可以指定宿主机的git用户的home目录，也可以在docker中额外将该文件进行挂载。
+     > 该方式较为简单，但是经常会欧已经存在相同uid的用户这种问题，而修改用户uid则可能会有其他问题，所以本人研究了另一种方法。
+> 2. sshd配置文件`/etc/sshd/sshd_config`中存在`AuthorizedKeysCommand`配置项，
+     > 该配置允许您指定将在登录期间运行的命令，以从远程源检索用户公钥文件并执行验证，
+     > 在用户登录时，将优先运行该命令，该命令应该在标准输出中输出0行或多行ssh-key字符串（即`authorized_keys`中每一行的内容）
+     > 如果用户登录所使用的私钥能够和输出的这些ssh-key中的一个匹配，则登录成功，否则将读取`authorized_keys`文件进行验证。  
+     > 利用这一点，我们可以编写一个脚本，它以root用户的身份运行，运行时判断登录的用户名，如果是`git`，
+     > 则读取docker中的`authorized_keys`并输出，以实现公钥验证。
+
+首先我们需要建立一个名为`git`的用户，否则用户不存在无法验证
+```shell
+> useradd -m -s /bin/sh -d /home/git git
+```
+在`/data/docker/gitlab`下建立`git-ssh`文件读取`authorized_keys`，内容如下：
+```shell
+#!/bin/sh
+if [ $1 = 'git' ];then
+  cat /data/docker/gitlab/data/.ssh/authorized_keys
+fi
+```
+> 注意：该文件可以输出任何公钥文件以实现任意用户的密钥登录，所以它应该只能由`root`用户进行编辑和执行（即700）  
+> `/data/docker/gitlab/data/.ssh/authorized_keys`文件是容器中的git用户的`authorized_keys`文件
+
+然后我们修改`/etc/sshd/sshd_config`文件：
+```
+AuthorizedKeysCommand /data/docker/gitlab/git-ssh %u
+AuthorizedKeysCommandUser root
+```
+修改完毕使用`systemctl restart sshd`命令重启sshd
+
+gitlab自动维护的`authorized_keys`每一行的内容大约是：
+```
+command="/opt/gitlab/embedded/service/gitlab-shell/bin/gitlab-shell key-xxx",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty ssh-ed25519 xxxxxxxx
+```
+它的作用是将ssh流量转发到`/opt/gitlab/embedded/service/gitlab-shell/bin/gitlab-shell`，
+宿主机接收到ssh流量后也会将流量转发到宿主机的该位置，而该位置并没有任何东西，所以会导致失败，
+在`/data/docker/gitlab`下新建`gitlab-shell`文件：
+```shell
+#!/bin/sh
+
+ssh -p 6022 -o StrictHostKeyChecking=no git@127.0.0.1 "SSH_ORIGINAL_COMMAND=\"$SSH_ORIGINAL_COMMAND\" $0 $@"
+```
+注意`6022`是gitlab映射到宿主机的端口,然后不要忘记添加执行权限
+添加可执行权限后，软链接到/opt/gitlab/embedded/service/gitlab-shell/bin/gitlab-shell
+```shell
+mkdir -p /opt/gitlab/embedded/service/gitlab-shell/bin/
+ln -s /data/docker/gitlab/gitlab-shell /opt/gitlab/embedded/service/gitlab-shell/bin/gitlab-shell
+```
+此时git用户的ssh流量将在脚本的作用下进行公钥验证，然后转发到容器中，但是从宿主机转发到容器中的ssh流量还要经过一次验证，这次验证的私钥需要由宿主机的git用户提供
+所以我们需要给宿主机的git用户生成密钥对，并将公钥写入到`authorized_keys`中：
+```shell
+sudo -u git ssh-keygen -t rsa -b 4096 -C "Git docker ssh keygen"  #然后一路回车，给git用户生成登录密钥
+cat /home/git/.ssh/id_rsa.pub >> /data/docker/gitlab/data/.ssh/authorized_keys  #将git用户的登录公钥添加到authorized_keys种
+```
+至此，我们就完成了22端口的复用
+
+
 
 ###### 数据迁移（可选）
 
@@ -370,64 +439,33 @@ services:
 ### 六、安装harbor
 
 1. 在`https://github.com/goharbor/harbor/releases`下载最新的安装包（放到`/data/tools/harbor`）
-
-2. 解压并修改`harbor.yml`文件，主要修改：
-
+2. 使用`tar zxvf xxx.tgz`命令解压压缩文件，然后修改`harbor.yml`文件，主要修改：
    1. `hostname`修改为`harbor.example.com`
-
-   2.  `harbor_admin_password` 和`database.password`修改为随机密码，增强安全性
-
+   2. `harbor_admin_password` 和`database.password`修改为随机密码，增强安全性
    3. `http.port`修改为`8001`
-
       > 也可以不修改，不过如果这里不修改端口，那么就要修改之后生成的`docker-compose.yml`中暴露的端口，否则会因为和nginx同时使用80端口而出错
-
-   4.  `data_volume`修改为`/data/docker/harbor/harbor_data` 
-
+   4. `data_volume`修改为`/data/docker/harbor/harbor_data`
    5. `log.local.location`修改为`/data/docker/harbor/harbor_log`
-
    6. 注释掉`https`块内容
-
       > 注释掉https块的内容的原因是如果不注释掉，harbor会尝试监听443端口，并使用ssl证书，但是我们是使用了一个统一的nginx来进行统一的请求转发和证书配置，所以不需要
-
-3. 因为`harbor`的安装脚本是按`1.x`版本的`docker-compose`命令格式写的，所以还需要修改一些脚本中的内容以可以使用`2.x`版本的`docker-compose`：
-
-   1. 将`common.sh`中的`docker`命令修改为`com.docker.cli`
-   2. 将`install.sh`中的`check_dockercompose`删除，并将`docker-compose`相关语句注释
-   3. 将`install.sh`中的`docker load`修改为`com.docker.cli load`
-   4. 将`prepare`中的`docker`修改为`com.docker.cli`
-
-4. 执行`install.sh`
-
-5. 修改配置以使得在前置了另外一层`nginx`时可以使用：
-
+3. 执行`install.sh`
+4. 修改配置以使得在前置了另外一层`nginx`时可以使用：
    1. 打开`common/config/core/env`文件，将`EXT_ENDPOINT=http://harbor.example.com:8001`修改为`EXT_ENDPOINT=https://harbor.example.com`）
-
-      > 如果没有修改`harbor.yml`中的`http.port`，那么这里应该是`EXT_ENDPOINT=http://harbor.example.com`，那么只需要将`http`修改为`https`即可。
-      >
-      > 总之，将这里的地址修改为我们在使用web界面时的访问地址，否则在命令行下登录docker会出现重定向错误问题，这个问题我在网上找了很久没有找到解决方案，最后是自己摸索出来的。
-      >
+      > 如果没有修改`harbor.yml`中的`http.port`，那么这里应该是`EXT_ENDPOINT=http://harbor.example.com`，那么只需要将`http`修改为`https`即可。  
+      > 总之，将这里的地址修改为我们在使用web界面时的访问地址，否则在命令行下登录docker会出现重定向错误问题，这个问题我在网上找了很久没有找到解决方案，最后是自己摸索出来的。  
       > 如果是单机安装harbor，外面不需要另外一层nginx，那么这里的地址应该默认就是正确的。
-
    2. 打开`common/config/nginx/nginx.conf`，将`location /`、`location /v2/`、`location /service/`块下面的`proxy_set_header X-Forwarded-Proto $scheme;`注释掉
-
       > 因为我们在外面前置了一层`nginx`，所以内部nginx在转发的时候不要再加`X-Forwarded-Proto`这个http头，不然会出现解析错误问题
-
-6. 因为`container_name`是全局唯一的，而`harbor`的部分容器名使用的默认的，会和其他的冲突（比如`nginx`），所以我们打开`docker-compose.yml`，将所有没有`harbor`前缀的`container_name`加上`harbor`前缀，以防和其他容器冲突
-
-7. 将需要的文件和文件夹(`common`,`docker-compose.yml`)拷贝到`/data/docker/harbor`下，注意`common`文件夹需要带权限拷贝（`cp -p`），否则启动容器会出问题
-
+5. 因为`container_name`是全局唯一的，而`harbor`的部分容器名使用的默认的，会和其他的冲突（比如`nginx`），所以我们打开`docker-compose.yml`，将所有没有`harbor`前缀的`container_name`加上`harbor`前缀，以防和其他容器冲突
+6. 将需要的文件和文件夹(`common`,`docker-compose.yml`)拷贝到`/data/docker/harbor`下，注意`common`文件夹需要带权限拷贝（`cp -p`），否则启动容器会出问题
    > 其他文件在容器运行时并不需要，所以我建议在一个目录生成配置文件，然后把配置文件复制到另一个目录运行，以免文件混乱，注意复制到的目录要和之前`harbor.yml`文件中的`data_volume`对应（去除最后一层目录）
-
-8. 进入`/data/docker/harbor`创建日志文件夹`mkdir harbor_log`
-
-9. 执行`docker compose up -d`启动容器
+7. 进入`/data/docker/harbor`创建日志文件夹`mkdir harbor_log`
+8. 执行`docker compose up -d`启动容器  
 
 安装好后，进入web管理页面`https://harbor.example.com`，删除默认的仓库，并添加一个仓库`example`，在该仓库下添加2个机器人`pull`和`push`，分别给予`拉取 artifact`和`拉取artifact,推送artifact`权限。
 
-> harbor策略是push必须有pull权限
->
+> harbor策略是push必须有pull权限  
 > 此时还可以设置一下垃圾清理策略、仓库的artifact保留策略等，建议每天或每周清理一次垃圾，每个镜像只保留最后10-30次推送的版本
-
 
 
 ### 七、安装并初始化Jenkins
@@ -438,7 +476,7 @@ services:
 version: "3.8"
 services:
     jenkins:
-        image: jenkins/jenkins:2.304-jdk11
+        image: jenkins/jenkins:lts
         container_name: jenkins
         restart: always
         network_mode: "host"
@@ -451,8 +489,7 @@ services:
         user: root
 ```
 
-> `environment.HOST_WORKSPACE`项的作用是把`${PWD}/jenkins_home/workspace`映射到docker中的`HOST_WORKSPACE`环境变量，这样在Jenkins的任务中，我们可以通过`"$HOST_WORKSPACE/$JOB_NAME"`来获取项目工作空间在宿主机上的位置
->
+> `environment.HOST_WORKSPACE`项的作用是把`${PWD}/jenkins_home/workspace`映射到docker中的`HOST_WORKSPACE`环境变量，这样在Jenkins的任务中，我们可以通过`"$HOST_WORKSPACE/$JOB_NAME"`来获取项目工作空间在宿主机上的位置  
 > 同时我们在`volumes`中映射了docker的bin和sock，这样我们就可以在Jenkins中运行docker，并将工作空间在宿主机上的位置映射给该docker，以便我们编译golang项目
 
 启动Jenkins：`docker compose up -d`
@@ -467,7 +504,7 @@ vi jenkins_home/updates/default.json
 # 执行ex命令, 替换所有插件下载URL（先输入:，然后粘贴:后面的命令）
 :1,$s/https:\/\/updates.jenkins.io\/download/https:\/\/mirrors.tuna.tsinghua.edu.cn\/jenkins/g
 # 执行ex命令, 替换连接测试URL
-:1,$s/http:\/\/www.google.com/https:\/\/www.baidu.com/g
+:1,$s/https:\/\/www.google.com/https:\/\/www.baidu.com/g
 # 重启jenkins容器
 docker compose up -d
 ```
@@ -540,10 +577,10 @@ COPY ca-certificates.crt /etc/ssl/certs/
 然后我们编译镜像、上传到私有库：
 
 ```shell
-com.docker.cli build --tag harbor.example.com/example/scratch:v1 --tag harbor.example.com/example/scratch:latest .
-com.docker.cli login harbor.example.com
-com.docker.cli push --all-tags harbor.example.com/example/scratch
-com.docker.cli logout harbor.example.com
+docker build --tag harbor.example.com/example/scratch:v1 --tag harbor.example.com/example/scratch:latest .
+docker login harbor.example.com
+docker push --all-tags harbor.example.com/example/scratch
+docker logout harbor.example.com
 ```
 
 > 参考：https://juejin.cn/post/6844904174396637197
@@ -726,7 +763,8 @@ pipeline {
 7. `Remote Directory`表示远程目录，脚本中的目录都是相对这个目录而言的，如果不填则表示为用户的home目录，我们填`/`
 8. 因为我们设置了本机的ssh登录端口为6022，所以我们需要展开`高级`设置，将`Port`修改为`6022`，之后保存
 
-> 注意：因为我们使用`jenkins-task`帐号登录服务器后，可能需要新建文件夹，这就需要`jenkins-task`帐号需要对可能需要新建文件夹的文件夹具有rwx权限
+> 注意：因为我们使用`jenkins-task`帐号登录服务器后，可能需要新建文件夹，这就需要`jenkins-task`帐号需要对可能需要新建文件夹的文件夹具有rwx权限  
+> 注意jenkins要使用旧版私钥登录（`ssh-keygen -m PEM -t rsa -b 4096`，第一行是`-----BEGIN RSA PRIVATE KEY-----`而不是`-----BEGIN OPENSSH PRIVATE KEY-----`）
 
 
 
