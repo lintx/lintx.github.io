@@ -87,13 +87,21 @@
 
 ###### 安装docker-compose
 
-本文安装的是`v2`版本的`docker-compose`，也叫`compose-cli`，项目地址为`https://github.com/docker/compose-cli`因为使用安装脚本会自动从`github`下载安装文件，而国内环境下载速度很慢，所以采用手动下载并安装的方式。
+本文安装的是`v2`版本的`docker-compose`，也叫`compose-cli`，项目地址为`https://github.com/docker/compose`因为使用安装脚本会自动从`github`下载安装文件，而国内环境下载速度很慢，所以采用手动下载并安装的方式。
 
-首先到`https://github.com/docker/compose-cli/releases`下载`v2.x`版本的安装文件，本文以[docker-compose-linux-amd64](https://github.com/docker/compose-cli/releases/download/v2.0.0-beta.6/docker-compose-linux-amd64) 为例。
+首先到`https://github.com/docker/compose/releases`下载`v2.x`版本的安装文件，本文以[docker-compose-linux-x86_64](https://github.com/docker/compose/releases/download/v2.22.0/docker-compose-linux-x86_64) 为例。
 
-然后下载安装脚本`https://raw.githubusercontent.com/docker/compose-cli/main/scripts/install/install_linux.sh`，
+然后下载安装脚本`https://github.com/docker/compose/releases/download/v2.22.0/docker-compose-linux-x86_64`，
 
-打开安装脚本，找到`$sh_c "${download_cmd} ${download_dir}/docker ${DOWNLOAD_URL}"`，注释掉，并增加一行`$sh_c "cp ./docker-compose-linux-amd64 ${download_dir}/docker"`这样就不会尝试从github下载二进制文件，而是直接使用已经下载好的二进制文件了
+You can download Docker Compose binaries from the release page on this repository.
+
+Rename the relevant binary for your OS to docker-compose and copy it to $HOME/.docker/cli-plugins
+
+Or copy it into one of these folders to install it system-wide:
+
+/usr/local/lib/docker/cli-plugins OR /usr/local/libexec/docker/cli-plugins
+/usr/lib/docker/cli-plugins OR /usr/libexec/docker/cli-plugins
+(might require making the downloaded file executable with chmod +x)
 
 将`install_lunux.sh`和`docker-compose-linux-amd64`文件上传到服务器上的`/data/tools/docker-compose`目录下，进入该目录，运行`./install_lunux.sh`进行安装
 
