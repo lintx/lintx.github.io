@@ -438,7 +438,7 @@ cat /home/git/.ssh/id_rsa.pub >> /data/docker/gitlab/data/.ssh/authorized_keys  
 5. 然后使用`docker compose exec gitlab bash`命令进入容器。
 6. 再在容器内使用`gitlab-rake gitlab:backup:restore`命令恢复数据。
 7. 恢复数据开始后会提示是否恢复数据，请确保本机的gitlab中没有重要数据。
-8. 如在恢复数据后需要将gitlab的版本升级，请参考升级指南`https://docs.gitlab.com/ee/update/index.html`，按照升级指南的版本一步步升级，否则可能造成文件损坏
+8. 如在恢复数据后需要将gitlab的版本升级，请参考升级指南`https://docs.gitlab.com/ee/update/index.html` ，按照升级指南的版本一步步升级，否则可能造成文件损坏
 
 > 恢复数据或升级版本后，在浏览器打开gitlab网页，确认可以进行登录之后再停止容器，然后修改`docker-compose.yml`文件中的版本号，再启动容器，依次升级，千万不要在还不能登录时就停止容器，否则会造成文件损坏。
 

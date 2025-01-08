@@ -1,70 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="ALL" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="05f1bb7c-7880-4c98-b8aa-4807ab5a8fd0" name="Default" comment="要塞计算器小修改" />
-    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <list default="true" id="05f1bb7c-7880-4c98-b8aa-4807ab5a8fd0" name="Default" comment="增加gitlab管理npm私有包">
+      <change afterPath="$PROJECT_DIR$/.idea/UniappTool.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/node/PostgreSQL.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/node/使用gitlab管理npm私有包实践.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/lintx.github.io.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/lintx.github.io.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/genshin/calc1/calc1.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/genshin/calc1/static/css/0.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/genshin/calc1/static/css/1.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/genshin/calc1/static/css/2.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/genshin/calc1/tool.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/node/使用docker+Jenkins持续集成.md" beforeDir="false" afterPath="$PROJECT_DIR$/node/使用docker+Jenkins持续集成.md" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="FUSProjectUsageTrigger">
-    <session id="-353415620">
-      <usages-collector id="statistics.lifecycle.project">
-        <counts>
-          <entry key="project.closed" value="5" />
-          <entry key="project.open.time.13" value="1" />
-          <entry key="project.open.time.20" value="1" />
-          <entry key="project.open.time.22" value="1" />
-          <entry key="project.open.time.5" value="2" />
-          <entry key="project.opened" value="5" />
-        </counts>
-      </usages-collector>
-      <usages-collector id="statistics.file.extensions.open">
-        <counts>
-          <entry key="html" value="1" />
-        </counts>
-      </usages-collector>
-      <usages-collector id="statistics.file.types.open">
-        <counts>
-          <entry key="HTML" value="1" />
-        </counts>
-      </usages-collector>
-      <usages-collector id="statistics.file.extensions.edit">
-        <counts>
-          <entry key="html" value="3275" />
-          <entry key="txt" value="8" />
-        </counts>
-      </usages-collector>
-      <usages-collector id="statistics.file.types.edit">
-        <counts>
-          <entry key="HTML" value="3275" />
-          <entry key="PLAIN_TEXT" value="8" />
-        </counts>
-      </usages-collector>
-    </session>
-  </component>
-  <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/yinwu-island-ah/index.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="938">
-              <caret line="67" column="27" selection-end-line="601" selection-end-column="7" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/minecraft/calc.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="210">
-              <caret line="54" column="177" selection-start-line="54" selection-start-column="125" selection-end-line="54" selection-end-column="177" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-    </leaf>
+  <component name="ChangesViewManager">
+    <option name="groupingKeys">
+      <option value="directory" />
+    </option>
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -73,8 +34,12 @@
       </list>
     </option>
   </component>
+  <component name="GOROOT" url="file://$USER_HOME$/go/go1.20.3" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GoLibraries">
+    <option name="indexEntireGoPath" value="true" />
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
@@ -84,11 +49,17 @@
       </list>
     </option>
   </component>
+  <component name="Jenkins.Settings">
+    <option name="lastSelectedView" value="all" />
+  </component>
   <component name="JsBuildToolGruntFileManager" detection-done="true" sorting="DEFINITION_ORDER" />
   <component name="JsBuildToolPackageJson" detection-done="true" sorting="DEFINITION_ORDER" />
   <component name="JsGulpfileManager">
     <detection-done>true</detection-done>
     <sorting>DEFINITION_ORDER</sorting>
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
   </component>
   <component name="NodePackageJsonFileManager">
     <packageJsonPaths>
@@ -98,12 +69,16 @@
       <path value="$PROJECT_DIR$/angular/node_modules/bootstrap/package.json" />
     </packageJsonPaths>
   </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
   <component name="ProjectFrameBounds">
     <option name="x" value="-7" />
     <option name="y" value="1" />
     <option name="width" value="1926" />
     <option name="height" value="1047" />
   </component>
+  <component name="ProjectId" id="2LBCwZMxPVSoKkUaHP2PFs4S8no" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -147,31 +122,45 @@
       <pane id="Scope" />
     </panes>
   </component>
-  <component name="PropertiesComponent">
-    <property name="DefaultHtmlFileTemplate" value="HTML File" />
-    <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
-    <property name="nodejs_npm_path_reset_for_default_project" value="true" />
-    <property name="settings.editor.selected.configurable" value="http.proxy" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
   </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.go.formatter.settings.were.checked": "true",
+    "RunOnceActivity.go.migrated.go.modules.settings": "true",
+    "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "git-widget-placeholder": "master",
+    "go.import.settings.migrated": "true",
+    "go.sdk.automatically.set": "true",
+    "last_opened_file_path": "D:/Code/html/lintx.github.io",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="H:\WEB_TEST\lintx.github.io\static" />
     </key>
   </component>
-  <component name="RunDashboard">
-    <option name="ruleStates">
-      <list>
-        <RuleState>
-          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
-        </RuleState>
-        <RuleState>
-          <option name="name" value="StatusDashboardGroupingRule" />
-        </RuleState>
-      </list>
-    </option>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-deb605915726-JavaScript-WS-243.22562.222" />
+      </set>
+    </attachedChunks>
   </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="应用程序级" UseSingleDictionary="true" transferred="true" />
   <component name="SvnConfiguration">
     <configuration />
   </component>
@@ -191,6 +180,11 @@
       <workItem from="1537865183711" duration="11217000" />
       <workItem from="1539313495682" duration="35000" />
       <workItem from="1540800413487" duration="19000" />
+      <workItem from="1675335329328" duration="30519000" />
+      <workItem from="1677234189793" duration="4431000" />
+      <workItem from="1706796358558" duration="681000" />
+      <workItem from="1707211106605" duration="612000" />
+      <workItem from="1736298712008" duration="5262000" />
     </task>
     <task id="LOCAL-00001" summary="yinwu服交易页面">
       <created>1532503688980</created>
@@ -262,7 +256,15 @@
       <option name="project" value="LOCAL" />
       <updated>1537928098891</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="UPDATE docker">
+      <option name="closed" value="true" />
+      <created>1706796444653</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1706796444653</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
@@ -293,17 +295,20 @@
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="1" />
-  </component>
-  <component name="VcsContentAnnotationSettings">
-    <option name="myLimit" value="2678400000" />
+    <option name="version" value="3" />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_NEW_TODO" value="false" />
     <MESSAGE value="yinwu服交易页面" />
     <MESSAGE value="要塞计算器小修改" />
-    <option name="LAST_COMMIT_MESSAGE" value="要塞计算器小修改" />
+    <MESSAGE value="UPDATE docker" />
+    <MESSAGE value="增加gitlab管理npm私有包" />
+    <option name="LAST_COMMIT_MESSAGE" value="增加gitlab管理npm私有包" />
+  </component>
+  <component name="VgoProject">
+    <integration-enabled>false</integration-enabled>
+    <settings-migrated>true</settings-migrated>
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/angular/modules/ueditor1_4_3-utf8-php/dialogs/snapscreen/snapscreen.html">
